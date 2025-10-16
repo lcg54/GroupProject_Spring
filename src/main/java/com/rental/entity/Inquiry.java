@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "inquiries")
-public class Inquiry {
+public class Inquiry { // 문의글
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "inquiry_id")
@@ -38,7 +38,7 @@ public class Inquiry {
     @OneToOne(mappedBy = "inquiry", cascade = CascadeType.ALL, orphanRemoval = true)
     private InquiryComment adminComment;
 
-    @PrePersist
+    @PrePersist // 생성일 자동할당
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }

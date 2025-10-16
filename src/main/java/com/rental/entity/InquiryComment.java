@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "inquiry_comments")
-public class InquiryComment {
+public class InquiryComment { // 문의글의 답변글 (관리자만 1회)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_id")
@@ -33,7 +33,7 @@ public class InquiryComment {
 
     private LocalDateTime createdAt;
 
-    @PrePersist
+    @PrePersist // 생성일 자동할당
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
