@@ -34,7 +34,7 @@ public class Product {
     private Category category;
 
     @Column(nullable = false)
-    private int pricePerPeriod; // 기본 단가
+    private int price; // 기본 단가
 
     @Column(nullable = false)
     private int totalStock; // 총 보유 수량

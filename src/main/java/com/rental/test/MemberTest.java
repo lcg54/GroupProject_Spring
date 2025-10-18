@@ -9,7 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@Transactional // 테스트 종료 시 롤백 (DB 깨끗하게 유지)
 public class MemberTest {
     @Autowired
     private MemberRepository memberRepository;
@@ -26,10 +25,6 @@ public class MemberTest {
         member.setRole(Role.USER);
 
         Member saved = memberRepository.save(member);
-
-        System.out.println("저장된 회원 ID: " + saved.getId());
-        System.out.println("저장된 회원 이름: " + saved.getName());
-        System.out.println("저장된 회원 이메일: " + saved.getEmail());
 
         Member found = memberRepository.findById(saved.getId()).orElse(null);
         System.out.println("조회된 회원: " + found);

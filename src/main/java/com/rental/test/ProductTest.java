@@ -30,7 +30,6 @@ public class ProductTest {
 
         List<Product> list = new ArrayList<>();
 
-        // 카테고리/브랜드 목록
         Category[] categories = Category.values();
         Brand[] brands = Brand.values();
 
@@ -43,19 +42,33 @@ public class ProductTest {
                     "%s의 최신 %s 모델입니다. 효율성과 디자인을 모두 잡았습니다. (샘플 %d)",
                     brand.name(), getCategoryName(category), i);
 
-            int price = 30000 + random.nextInt(90000)/100*100; // 3만~12만
+            // 가격: 540,000 ~ 2,940,000 (임시)
+            int pricePerPeriod = 6 * (9 + random.nextInt(40)) * 10000;
+
+            // 기본 재고
             int totalStock = 20 + random.nextInt(10);
+            int reservedStock = random.nextInt(5);
+            int rentedStock = random.nextInt(10);
+            int repairStock = random.nextInt(2);
+
+            // 약 12%의 상품은 '대여가능재고=0'으로 설정
+            boolean makeUnavailable = random.nextDouble() < 0.12;
+            if (makeUnavailable) {
+                reservedStock = totalStock / 3;
+                rentedStock = totalStock / 2;
+                repairStock = totalStock - (reservedStock + rentedStock);
+            }
 
             Product p = new Product();
             p.setName(name);
             p.setCategory(category);
             p.setBrand(brand);
             p.setDescription(description);
-            p.setPricePerPeriod(price);
+            p.setPrice(pricePerPeriod);
             p.setTotalStock(totalStock);
-            p.setReservedStock(random.nextInt(5));
-            p.setRentedStock(random.nextInt(10));
-            p.setRepairStock(random.nextInt(2));
+            p.setReservedStock(reservedStock);
+            p.setRentedStock(rentedStock);
+            p.setRepairStock(repairStock);
             p.setMainImage("sample_" + UUID.randomUUID() + ".jpg");
 
             list.add(p);

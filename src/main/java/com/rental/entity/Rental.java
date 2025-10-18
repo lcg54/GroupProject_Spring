@@ -36,13 +36,15 @@ public class Rental {
     private LocalDate rentalStart; // 실제 대여 시작일 (예약이면 예정일)
     private LocalDate rentalEnd;   // 대여 종료 예정일/반납일
 
-    private int totalPrice; // 계산된 총 금액
+    private int rentalPeriodYears;  // 대여기간 (3, 4, 5, 6년)
+    private int monthlyPrice;       // 선택된 월요금
+    private int totalPrice;         // 계산된 총금액 (기간 × 월요금 × 12)
 
     @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RentalItem> items = new ArrayList<>();
 
     @PrePersist
-    protected void onCreate() { // 생성시 createdAt=주문일 자동할당, status 지정을 안하면 status=RESERVED(예약완료) 자동할당
+    protected void onCreate() { // 주문생성일, 주문상태 RESERVED(예약완료) 자동할당
         this.createdAt = LocalDateTime.now();
         if (this.status == null) this.status = RentalStatus.RESERVED;
     }
