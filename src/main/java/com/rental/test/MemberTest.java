@@ -30,4 +30,3 @@ public class MemberTest {
         System.out.println("조회된 회원: " + found);
     }
 }
-

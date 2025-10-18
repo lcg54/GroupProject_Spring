@@ -40,10 +40,11 @@ public class ProductTest {
             String name = brand.name() + " " + getCategoryName(category) + " " + (100 + i) + " 모델";
             String description = String.format(
                     "%s의 최신 %s 모델입니다. 효율성과 디자인을 모두 잡았습니다. (샘플 %d)",
-                    brand.name(), getCategoryName(category), i);
+                    brand.name(), getCategoryName(category), i
+            );
 
-            // 가격: 540,000 ~ 2,940,000 (임시)
-            int pricePerPeriod = 6 * (9 + random.nextInt(40)) * 10000;
+            // 가격: 900,000 ~ 3,000,000 (랜덤)
+            int pricePerPeriod = 6 * (15 + random.nextInt(35)) * 10000;
 
             // 기본 재고
             int totalStock = 20 + random.nextInt(10);
@@ -51,7 +52,7 @@ public class ProductTest {
             int rentedStock = random.nextInt(10);
             int repairStock = random.nextInt(2);
 
-            // 약 12%의 상품은 '대여가능재고=0'으로 설정
+            // 약 12%의 상품은 대여불가 상태로 만들기
             boolean makeUnavailable = random.nextDouble() < 0.12;
             if (makeUnavailable) {
                 reservedStock = totalStock / 3;
@@ -70,6 +71,9 @@ public class ProductTest {
             p.setRentedStock(rentedStock);
             p.setRepairStock(repairStock);
             p.setMainImage("sample_" + UUID.randomUUID() + ".jpg");
+
+            // 리뷰 리스트는 자동 초기화되어 있음 (@OneToMany 초기값 new ArrayList<>)
+            // 별도 setReviews() 호출 필요 없음
 
             list.add(p);
         }

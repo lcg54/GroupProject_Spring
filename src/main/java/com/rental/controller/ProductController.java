@@ -21,6 +21,7 @@ import java.util.Map;
 public class ProductController {
     private final ProductService productService;
 
+    // 상품 목록 조회
     @GetMapping("/list")
     public ResponseEntity<Map<String, Object>> getProducts(
             @RequestParam(required = false) List<Category> category,
@@ -39,6 +40,7 @@ public class ProductController {
         return ResponseEntity.ok(result);
     }
 
+    // 상품 조회
     @GetMapping("/{id}")
     public ResponseEntity<?> getProduct(@PathVariable Long id) {
         ProductResponse product = productService.findById(id);

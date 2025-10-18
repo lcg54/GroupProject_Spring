@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository productRepository;
 
+    // 상품 목록 조회
     public Page<Product> getFilteredProducts(List<Category> categories, List<Brand> brands, Boolean available, String keyword, String sortBy, int page, int size) {
         try {
             // 정렬 설정
@@ -32,6 +33,7 @@ public class ProductService {
             } else if ("PRICE_DESC".equalsIgnoreCase(sortBy)) {
                 sort = Sort.by(Sort.Direction.DESC, "price");
             }
+            // 상품 목록 요청
             Pageable pageable = PageRequest.of(page - 1, size, sort);
             return productRepository.findFilteredProducts(
                     (categories == null || categories.isEmpty()) ? null : categories,

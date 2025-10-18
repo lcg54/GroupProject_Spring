@@ -7,6 +7,7 @@ import com.rental.entity.Rental;
 import com.rental.entity.RentalItem;
 import com.rental.repository.MemberRepository;
 import com.rental.repository.ProductRepository;
+import com.rental.repository.RentalItemRepository;
 import com.rental.repository.RentalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class RentalService {
     private final RentalRepository rentalRepository;
+    private final RentalItemRepository rentalItemRepository;
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
 
@@ -28,13 +30,12 @@ public class RentalService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
 
-        // 가격 계산 로직 (임시로 짠거)
+        // 가격 계산 로직 (임시)
         int basePrice = product.getPrice();
         int monthlyPrice = (int) (basePrice / (periodYears * 10.0) - 1100);
         int totalPrice = monthlyPrice * 12 * periodYears;
 
-        RentalItem item = new RentalItem();
-
+        // Rental 먼저 생성 (PK 확보)
         Rental rental = new Rental();
         rental.setMember(member);
         rental.setRentalPeriodYears(periodYears);
@@ -43,14 +44,18 @@ public class RentalService {
         rental.setRentalStart(LocalDate.now());
         rental.setRentalEnd(LocalDate.now().plusYears(periodYears));
         rental.setStatus(RentalStatus.RESERVED);
+        rentalRepository.save(rental);
 
+        // RentalItem 생성
+        RentalItem item = new RentalItem();
         item.setRental(rental);
         item.setProduct(product);
         item.setQuantity(1);
         item.setPricePerUnit(monthlyPrice);
+        rentalItemRepository.save(item);
 
+        // Rental의 items 리스트에도 추가
         rental.getItems().add(item);
-        rentalRepository.save(rental);
 
         return rental;
     }
