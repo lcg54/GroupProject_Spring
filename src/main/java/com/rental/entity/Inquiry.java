@@ -2,17 +2,14 @@ package com.rental.entity;
 
 import com.rental.constant.InquiryType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "inquiries")
 public class Inquiry { // 문의글
@@ -22,23 +19,33 @@ public class Inquiry { // 문의글
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member; // 작성자
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rental_item_id", nullable = false)
+    private RentalItem rentalItem;
+
+    @OneToOne(mappedBy = "inquiry", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private InquiryComment adminComment;
+
+    @Column(nullable = false)
     private String title;
 
-    @Column(length = 4000)
+    @Column(length = 4000, nullable = false)
     private String content;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private InquiryType type; // 문의 사유
 
     private LocalDateTime createdAt;
 
-    @OneToOne(mappedBy = "inquiry", cascade = CascadeType.ALL, orphanRemoval = true)
-    private InquiryComment adminComment;
-
-    @PrePersist // 생성일 자동할당
+    @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }

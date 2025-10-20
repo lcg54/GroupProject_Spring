@@ -14,7 +14,6 @@ import java.util.List;
 @Entity
 @Table(name = "reviews")
 public class Review {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "review_id")

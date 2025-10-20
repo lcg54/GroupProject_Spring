@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/reviews")
+@RequestMapping("/review")
 @RequiredArgsConstructor
 public class ReviewController {
 
     private final ReviewService reviewService;
 
     // 리뷰 등록
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<?> createReview(@RequestBody Map<String, Object> req) {
         Long rentalItemId = ((Number) req.get("rentalItemId")).longValue();
         Long memberId = ((Number) req.get("memberId")).longValue();
@@ -48,7 +48,7 @@ public class ReviewController {
     }
 
     // 리뷰 수정
-    @PutMapping("/{reviewId}")
+    @PutMapping("/update/{reviewId}")
     public ResponseEntity<Review> updateReview(
             @PathVariable Long reviewId,
             @RequestBody Map<String, Object> req
@@ -63,7 +63,7 @@ public class ReviewController {
     }
 
     // 리뷰 삭제
-    @DeleteMapping("/{reviewId}")
+    @DeleteMapping("/delete/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.ok(Map.of("message", "리뷰가 삭제되었습니다."));

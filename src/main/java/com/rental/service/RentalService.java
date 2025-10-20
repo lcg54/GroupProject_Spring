@@ -31,8 +31,7 @@ public class RentalService {
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
 
         // 가격 계산 로직 (임시)
-        int basePrice = product.getPrice();
-        int monthlyPrice = (int) (basePrice / (periodYears * 10.0) - 1100);
+        int monthlyPrice = (int) (product.getPrice() / (periodYears * 10.0) - 2100);
         int totalPrice = monthlyPrice * 12 * periodYears;
 
         // Rental 먼저 생성 (PK 확보)
