@@ -27,7 +27,7 @@ public class ProductService {
             // 정렬 설정
             Sort sort = Sort.unsorted();
             if ("POPULAR".equalsIgnoreCase(sortBy)) {
-                sort = Sort.by(Sort.Direction.DESC, "rentedStock"); // 대여 기록 기준이어야 하는데 일단 대여중 기준으로 함
+                sort = Sort.by(Sort.Direction.DESC, "rentedStock"); // 대여중 재고 기준
             } else if ("PRICE_ASC".equalsIgnoreCase(sortBy)) {
                 sort = Sort.by(Sort.Direction.ASC, "price");
             } else if ("PRICE_DESC".equalsIgnoreCase(sortBy)) {
@@ -57,5 +57,22 @@ public class ProductService {
         return new ProductResponse(
                 p.getId(), p.getName(), p.getBrand(), p.getCategory(), p.getPrice(), p.getTotalStock(), p.getReservedStock(), p.getRentedStock(), p.getRepairStock(), p.getMainImage(), p.getDescription(), imageFileNames
         );
+    }
+
+    // 인기상품 Top3 (대여중 재고 기준)
+    public List<ProductResponse> getPopularProducts() {
+        List<Product> top3 = productRepository.findTop3ByOrderByRentedStockDesc();
+        return top3.stream().map(p -> {
+            List<String> imageFileNames = p.getImages() == null ? List.of() :
+                    p.getImages().stream()
+                            .sorted((a, b) -> Integer.compare(a.getSeq(), b.getSeq()))
+                            .map(ProductImage::getFileName)
+                            .collect(Collectors.toList());
+            return new ProductResponse(
+                    p.getId(), p.getName(), p.getBrand(), p.getCategory(), p.getPrice(),
+                    p.getTotalStock(), p.getReservedStock(), p.getRentedStock(), p.getRepairStock(),
+                    p.getMainImage(), p.getDescription(), imageFileNames
+            );
+        }).toList();
     }
 }

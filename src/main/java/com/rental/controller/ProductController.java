@@ -7,7 +7,6 @@ import com.rental.entity.Product;
 import com.rental.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +29,7 @@ public class ProductController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "15") int size) {
+            @RequestParam(defaultValue = "10") int size) {
         Page<Product> productPage = productService.getFilteredProducts(category, brand, available, keyword, sortBy, page, size);
         Map<String, Object> result = new HashMap<>();
         result.put("products", productPage.getContent());
@@ -45,5 +44,12 @@ public class ProductController {
     public ResponseEntity<?> getProduct(@PathVariable Long id) {
         ProductResponse product = productService.findById(id);
         return ResponseEntity.ok(product);
+    }
+
+    // 인기상품 Top3
+    @GetMapping("/popular")
+    public ResponseEntity<List<ProductResponse>> getPopularProducts() {
+        List<ProductResponse> popularProducts = productService.getPopularProducts();
+        return ResponseEntity.ok(popularProducts);
     }
 }
