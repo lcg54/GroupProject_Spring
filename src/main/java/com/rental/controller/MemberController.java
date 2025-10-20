@@ -33,7 +33,6 @@ public class MemberController {
         }
     }
 
-    // 로그인 엔드포인트 추가
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
         String username = loginData.get("username");
@@ -42,6 +41,38 @@ public class MemberController {
         try {
             Member member = memberService.login(username, password);
             return ResponseEntity.ok(member);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(new ErrorResponse("서버 오류가 발생했습니다."));
+        }
+    }
+
+    @PutMapping(value = "/edit", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> editMember(
+            @ModelAttribute MemberRequestDto memberRequestDto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
+        try {
+            Member updated = memberService.updateMember(memberRequestDto, profileImage);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(new ErrorResponse("서버 오류가 발생했습니다."));
+        }
+    }
+
+    // 회원 탈퇴 엔드포인트 추가
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<?> withdrawMember(@RequestBody Map<String, String> withdrawData) {
+        String username = withdrawData.get("username");
+        String password = withdrawData.get("password");
+
+        try {
+            memberService.withdrawMember(username, password);
+            return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         } catch (Exception e) {
