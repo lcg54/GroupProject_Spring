@@ -18,7 +18,7 @@ public class MemberController {
 
     @PostMapping("/test")
     public ResponseEntity<?> testLogin() {
-        Optional<Member> memberOpt = memberRepository.findById(2L);
+        Optional<Member> memberOpt = memberRepository.findById(1L);
         if (memberOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("테스트용 유저를 찾을 수 없습니다.");
         }

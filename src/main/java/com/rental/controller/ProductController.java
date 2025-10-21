@@ -3,16 +3,13 @@ package com.rental.controller;
 import com.rental.constant.Brand;
 import com.rental.constant.Category;
 import com.rental.dto.ProductResponse;
-import com.rental.entity.Product;
 import com.rental.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/product")
@@ -29,27 +26,28 @@ public class ProductController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<Product> productPage = productService.getFilteredProducts(category, brand, available, keyword, sortBy, page, size);
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ProductResponse> productPage = productService.getFilteredProducts(category, brand, available, keyword, sortBy, page, size);
+
         Map<String, Object> result = new HashMap<>();
         result.put("products", productPage.getContent());
         result.put("currentPage", productPage.getNumber() + 1);
         result.put("totalPages", productPage.getTotalPages());
         result.put("totalItems", productPage.getTotalElements());
+
         return ResponseEntity.ok(result);
     }
 
-    // 상품 조회
+    // 상품 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProduct(@PathVariable Long id) {
-        ProductResponse product = productService.findById(id);
-        return ResponseEntity.ok(product);
+    public ResponseEntity<ProductResponse> getProduct(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.findById(id));
     }
 
     // 인기상품 Top3
     @GetMapping("/popular")
     public ResponseEntity<List<ProductResponse>> getPopularProducts() {
-        List<ProductResponse> popularProducts = productService.getPopularProducts();
-        return ResponseEntity.ok(popularProducts);
+        return ResponseEntity.ok(productService.getPopularProducts());
     }
 }
