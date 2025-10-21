@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @SpringBootTest
@@ -42,21 +44,35 @@ public class ReviewTest {
         }
 
         List<Review> reviewList = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
 
         for (Product p : products) {
-            int reviewCount = random.nextInt(5) + 1; // 상품당 1~5개의 리뷰
+            int reviewCount = 10 + random.nextInt(191); // 10~200개
+            double baseRating = 2.5 + 1.5 * (reviewCount / 200.0); // 리뷰 많으면 4점 근처, 적으면 2.5점 근처
             for (int i = 0; i < reviewCount; i++) {
                 Member randomMember = members.get(random.nextInt(members.size()));
-                double rating = 2.5 + random.nextDouble() * 2.5; // 2.5 ~ 5.0 사이
+
+                // 각 리뷰별 랜덤 변동
+                double rating = baseRating + (random.nextInt(5) - 2) * 0.5;
+                // -1 ~ +1 범위, 0.5 단위
+                rating = Math.max(1.0, Math.min(5.0, rating)); // 1~5 제한
+
                 String title = getRandomTitle();
                 String content = getRandomContent();
+
+                // 작성일: 1년 전 ~ 오늘
+                long minDay = now.minusYears(1).atZone(ZoneId.systemDefault()).toEpochSecond();
+                long maxDay = now.atZone(ZoneId.systemDefault()).toEpochSecond();
+                long randomEpoch = minDay + (long) (random.nextDouble() * (maxDay - minDay));
+                LocalDateTime randomDate = LocalDateTime.ofEpochSecond(randomEpoch, 0, ZoneId.systemDefault().getRules().getOffset(now));
 
                 Review review = Review.builder()
                         .product(p)
                         .member(randomMember)
-                        .rating(Math.round(rating * 10.0) / 10.0)
+                        .rating(rating)
                         .title(title)
                         .content(content)
+                        .regDate(randomDate)
                         .build();
 
                 reviewList.add(review);

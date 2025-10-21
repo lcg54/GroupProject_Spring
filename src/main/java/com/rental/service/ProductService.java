@@ -5,6 +5,7 @@ import com.rental.constant.Category;
 import com.rental.dto.ProductResponse;
 import com.rental.entity.Product;
 import com.rental.entity.ProductImage;
+import com.rental.entity.Review;
 import com.rental.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -54,6 +55,20 @@ public class ProductService {
                         .sorted((a, b) -> Integer.compare(a.getSeq(), b.getSeq()))
                         .map(ProductImage::getFileName)
                         .collect(Collectors.toList());
-        return new ProductResponse(p.getId(), p.getName(), p.getBrand(), p.getCategory(), p.getPrice(), p.getTotalStock(), p.getReservedStock(), p.getRentedStock(), p.getRepairStock(), p.getMainImage(), p.getDescription(), imageFileNames);
+        // 리뷰 정보
+        double averageRating = 0.0;
+        int reviewCount = 0;
+
+        if (p.getReviews() != null && !p.getReviews().isEmpty()) {
+            reviewCount = p.getReviews().size();
+            averageRating = p.getReviews().stream()
+                    .mapToDouble(Review::getRating)
+                    .average()
+                    .orElse(0.0);
+        }
+        return new ProductResponse(
+                p.getId(), p.getName(), p.getBrand(), p.getCategory(), p.getPrice(), p.getTotalStock(), p.getReservedStock(), p.getRentedStock(), p.getRepairStock(), p.getMainImage(), p.getDescription(), imageFileNames, averageRating, reviewCount
+        );
     }
+
 }
