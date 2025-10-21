@@ -5,6 +5,7 @@ import com.rental.entity.Member;
 import com.rental.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,20 +18,30 @@ import java.util.UUID;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${productImageLocation:C:\\\\shop\\\\images}")
     private String uploadDir;
 
     public Member registerMember(MemberRequestDto dto, MultipartFile profileImage) throws IOException {
+        // 이메일 중복 체크
         if (memberRepository.findByEmail(dto.getEmail()) != null) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        // 사용자명 중복 체크
+        if (memberRepository.findByUsername(dto.getUsername()) != null) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         }
 
         Member member = new Member();
         member.setUsername(dto.getUsername());
         member.setName(dto.getName());
         member.setEmail(dto.getEmail());
-        member.setPassword(dto.getPassword());
+
+        // 비밀번호 암호화
+        member.setPassword(passwordEncoder.encode(dto.getPassword()));
+
         member.setPhone(dto.getPhone());
         member.setAddress(dto.getAddress());
 
@@ -49,7 +60,8 @@ public class MemberService {
             throw new IllegalArgumentException("존재하지 않는 아이디입니다.");
         }
 
-        if (!member.getPassword().equals(password)) {
+        // BCrypt로 비밀번호 확인
+        if (!passwordEncoder.matches(password, member.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
@@ -68,8 +80,9 @@ public class MemberService {
         member.setPhone(dto.getPhone());
         member.setAddress(dto.getAddress());
 
+        // 비밀번호 변경 시 암호화
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            member.setPassword(dto.getPassword());
+            member.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
         if (profileImage != null && !profileImage.isEmpty()) {
@@ -84,7 +97,6 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
-    // 회원 탈퇴 메서드 추가
     public void withdrawMember(String username, String password) {
         Member member = memberRepository.findByUsername(username);
 
@@ -92,8 +104,8 @@ public class MemberService {
             throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
         }
 
-        // 비밀번호 확인
-        if (!member.getPassword().equals(password)) {
+        // BCrypt로 비밀번호 확인
+        if (!passwordEncoder.matches(password, member.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 

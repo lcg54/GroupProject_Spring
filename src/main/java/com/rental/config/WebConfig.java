@@ -12,14 +12,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${productImageLocation}")
     private String uploadPath;
 
-    // 이미지 파일 제공을 위한 설정
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:///" + uploadPath + "/");
     }
 
-    // CORS 설정
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")

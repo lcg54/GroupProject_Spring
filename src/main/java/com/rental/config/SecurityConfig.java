@@ -3,6 +3,7 @@ package com.rental.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,6 +16,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
@@ -26,17 +28,21 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable) // REST API용 CSRF 비활성화
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .maximumSessions(1) // 동시 세션 1개로 제한
-                        .maxSessionsPreventsLogin(false) // 기존 세션 만료
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/members/register", "/api/members/login").permitAll()
+                        // 회원가입, 로그인은 모두 허용
+                        .requestMatchers("/api/members", "/api/members/login").permitAll()
                         .requestMatchers("/api/members/logout").permitAll()
                         .requestMatchers("/api/members/check-session").permitAll()
-                        .anyRequest().permitAll() // 개발 단계에서는 모든 요청 허용
+                        // 이미지 접근 허용
+                        .requestMatchers("/images/**").permitAll()
+                        // 나머지는 모두 허용 (개발 단계)
+                        .anyRequest().permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/members/logout")
@@ -59,7 +65,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // preflight 캐시 1시간
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
