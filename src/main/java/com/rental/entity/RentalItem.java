@@ -26,6 +26,9 @@ public class RentalItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @OneToOne(mappedBy = "rentalItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Review review;
+
     @Column(nullable = false)
     private int quantity; // 수량
 

@@ -1,17 +1,14 @@
 package com.rental.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "inquiry_comments")
 public class InquiryComment { // 문의글의 답변글 (관리자만 1회)
@@ -21,19 +18,19 @@ public class InquiryComment { // 문의글의 답변글 (관리자만 1회)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inquiry_id")
+    @JoinColumn(name = "inquiry_id", nullable = false, unique = true)
     private Inquiry inquiry;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id")
-    private Member admin; // 관리자 작성자 (role==ADMIN)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Member admin; // 관리자 (role.ADMIN)
 
-    @Column(length = 4000)
+    @Column(length = 4000, nullable = false)
     private String comment;
 
     private LocalDateTime createdAt;
 
-    @PrePersist // 생성일 자동할당
+    @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }

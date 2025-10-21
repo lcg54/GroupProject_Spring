@@ -3,11 +3,7 @@ package com.rental.entity;
 import com.rental.constant.Brand;
 import com.rental.constant.Category;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +20,12 @@ public class Product {
     @Column(name = "product_id")
     private Long id;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
+
     @Column(nullable = false)
     private String name;
 
@@ -34,7 +36,7 @@ public class Product {
     private Category category;
 
     @Column(nullable = false)
-    private int pricePerPeriod; // 기본 단가 (예: 월 단가 혹은 기본 단가 규칙으로 합성)
+    private int price; // 기본 단가
 
     @Column(nullable = false)
     private int totalStock; // 총 보유 수량
@@ -56,17 +58,13 @@ public class Product {
 
     private LocalDate regDate;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> images = new ArrayList<>();
-
-    @PrePersist  // 생성시 regDate=생성일 자동할당
+    @PrePersist
     protected void onCreate() {
         this.regDate = LocalDate.now();
     }
 
-    public int getAvailableStock() { // 사용 가능 재고 계산용 메서드
-        int unavailable = (reservedStock) + (rentedStock) + (repairStock);
-        int available = totalStock - unavailable;
-        return Math.max(available, 0);
+    public int getAvailableStock() { // 대여가능재고
+        int unavailable = reservedStock + rentedStock + repairStock;
+        return Math.max(totalStock - unavailable, 0);
     }
 }
