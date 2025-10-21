@@ -18,7 +18,7 @@ public class MemberTest {
         user01.setUsername("user01");
         user01.setName("홍길동");
         user01.setEmail("user@example.com");
-        user01.setPassword("1234");
+        user01.setPassword("1234567@");
         user01.setPhone("010-1111-2222");
         user01.setAddress("서울특별시 강남구 테헤란로 123");
         user01.setRole(Role.USER);
@@ -29,7 +29,7 @@ public class MemberTest {
         admin01.setUsername("admin01");
         admin01.setName("관리자");
         admin01.setEmail("admin@example.com");
-        admin01.setPassword("1234");
+        admin01.setPassword("1234567@");
         admin01.setPhone("010-3333-4444");
         admin01.setAddress("서울특별시 마포구 홍익로 10");
         admin01.setRole(Role.ADMIN);

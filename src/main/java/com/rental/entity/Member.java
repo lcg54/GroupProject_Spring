@@ -1,7 +1,9 @@
 package com.rental.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.rental.constant.Role;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,7 +32,9 @@ public class Member {
     @Column(unique = true, nullable = false)
     private String email;
 
+
     @Column(nullable = false)
+    @Pattern(regexp = ".*[!@#$%].*", message = "비밀 번호는 특수 문자 '!@#$%' 중 하나 이상을 포함해야 합니다.")
     private String password;
 
     @Column(unique = true)
@@ -43,6 +47,7 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @JsonFormat(pattern = "yyy-MM-dd")
     private LocalDate regDate;
 
     @PrePersist // 생성시 role 지정을 안하면 role=USER 자동할당, regDate=생성일 자동할당
@@ -50,4 +55,5 @@ public class Member {
         if (this.role == null) this.role = Role.USER;
         this.regDate = LocalDate.now();
     }
+
 }
