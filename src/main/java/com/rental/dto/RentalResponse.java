@@ -1,25 +1,32 @@
 package com.rental.dto;
 
 import com.rental.constant.RentalStatus;
-import com.rental.entity.Member;
-import com.rental.entity.RentalItem;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 public class RentalResponse {
     private Long id;
-    private LocalDateTime createdAt;
     private RentalStatus status;
-    private LocalDate rentalStart;
-    private LocalDate rentalEnd;
-    // 서비스 출장 날짜 기록용 필드 추가 필요
-    private int rentalPeriodYears;
-    private int monthlyPrice;
+    private LocalDateTime createdAt;
     private int totalPrice;
+    private List<RentalItemResponse> items;
+
+    @Data
+    @AllArgsConstructor
+    public static class RentalItemResponse {
+        private Long productId;
+        private String productName;
+        private int quantity;
+        private int pricePerUnit;
+        private int rentalPeriodYears;
+        private LocalDate rentalStart;
+        private LocalDate rentalEnd;
+        private int itemTotalPrice;
+    }
 }

@@ -56,6 +56,8 @@ public class Product {
     @Column(length = 2000)
     private String description;
 
+    private Boolean available; // 재고 사용 가능 여부
+
     private LocalDate regDate;
 
     @PrePersist

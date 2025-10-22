@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,5 +34,11 @@ public class RentalItem {
     @Column(nullable = false)
     private int quantity; // 수량
 
-    private int pricePerUnit; // 대여 시점 고정 단가 (대여중에 product 가격이 바뀌어도, pricePerUnit을 따로 두어서 변동없도록)
+    private int pricePerUnit; // 상품별 고정 월 단가 (구매시점에 고정되어 상품가격이 수정되어도 바뀌지 않도록 따로 설정)
+
+    private int rentalPeriodYears; // 대여 기간 (3,4,5,6년)
+    private LocalDate rentalStart; // 대여 시작일
+    private LocalDate rentalEnd;   // 대여 종료일
+
+    // private LocalDate serviceDate; // 서비스 출장일
 }
