@@ -53,6 +53,8 @@ public class Product {
     @Column(nullable = false)
     private String mainImage; // 대표 이미지 파일명
 
+    private String categoryImage; // 카테고리 이미지
+
     @Column(length = 2000)
     private String description;
 

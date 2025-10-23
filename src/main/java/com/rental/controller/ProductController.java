@@ -1,17 +1,15 @@
 package com.rental.controller;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rental.constant.Brand;
 import com.rental.constant.Category;
 import com.rental.dto.ProductResponse;
+import com.rental.entity.Product;
 import com.rental.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -20,6 +18,9 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
+
+    @Value("${productImageLocation}")
+    private String productImageLocation ; // 기본 값 : null
 
     // 상품 목록 조회
     @GetMapping("/list")
@@ -53,5 +54,21 @@ public class ProductController {
     @GetMapping("/popular")
     public ResponseEntity<List<ProductResponse>> getPopularProducts() {
         return ResponseEntity.ok(productService.getPopularProducts());
+    }
+
+    // 카테고리 사진
+    @GetMapping("/category/images")
+    public ResponseEntity<List<Map<String, String>>> getCategoryImages() {
+        List<Product> products = productService.findCategoryImage("category");
+        String baseUrl = "http://localhost:9000/images/";
+
+        List<Map<String, String>> result = products.stream()
+                .map(p -> Map.of(
+                        "category", p.getCategory().name(),
+                        "categoryImage", baseUrl + p.getCategoryImage()
+                ))
+                .toList();
+
+        return ResponseEntity.ok(result);
     }
 }

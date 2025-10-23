@@ -71,4 +71,8 @@ public class ProductService {
         );
     }
 
+    // 카테고리 사진
+    public List<Product> findCategoryImage(String keyword) {
+        return productRepository.findByCategoryImageContaining(keyword);
+    }
 }
