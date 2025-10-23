@@ -1,10 +1,9 @@
 package com.rental.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -19,12 +18,17 @@ public class CartItem {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id")
+    @JoinColumn(name = "cart_id", nullable = false)
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     private int quantity;
+
+    private int periodYears; // 대여 기간 (년)
+    private LocalDate rentalStart; // 선택 전이면 null 가능
+
+    private int estimatedPrice; // 예상 대여료(월 단위 계산)
 }
