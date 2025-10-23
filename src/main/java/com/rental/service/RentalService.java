@@ -36,14 +36,16 @@ public class RentalService {
         Rental rental = new Rental();
         rental.setMember(member);
         rental.setStatus(RentalStatus.RESERVED);
+        rentalRepository.save(rental);
 
-        List<RentalItem> items = new ArrayList<>();
         int totalPrice = 0;
+        List<RentalItem> items = new ArrayList<>();
 
         for (RentalRequest.RentalItemRequest itemReq : request.getItems()) {
             Product product = productRepository.findById(itemReq.getProductId())
                     .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
-            // 월 대여료 계산 로직 (임시)
+
+            // 대여료 계산 로직 (임시)
             int monthlyPrice = (int) (product.getPrice() / (itemReq.getPeriodYears() * 8.0) - 5100);
             int itemTotal = monthlyPrice * 12 * itemReq.getPeriodYears() * itemReq.getQuantity();
 
@@ -55,15 +57,13 @@ public class RentalService {
             item.setRentalPeriodYears(itemReq.getPeriodYears());
             item.setRentalStart(itemReq.getRentalStart());
             item.setRentalEnd(itemReq.getRentalStart().plusYears(itemReq.getPeriodYears()));
-            rentalItemRepository.save(item);
             items.add(item);
             totalPrice += itemTotal;
         }
         rental.setItems(items);
         rental.setTotalPrice(totalPrice);
-        rentalRepository.save(rental);
-
-        return rental;
+        rentalItemRepository.saveAll(items);
+        return rentalRepository.save(rental);
     }
 
     // 응답 DTO 변환

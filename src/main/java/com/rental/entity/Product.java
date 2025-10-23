@@ -62,11 +62,12 @@ public class Product {
 
     @PrePersist
     protected void onCreate() {
+        this.available = true;
         this.regDate = LocalDate.now();
     }
 
     public int getAvailableStock() { // 대여가능재고
-        int unavailable = reservedStock + rentedStock + repairStock;
-        return Math.max(totalStock - unavailable, 0);
+        int unavailableStock = reservedStock + rentedStock + repairStock;
+        return Math.max(totalStock - unavailableStock, 0);
     }
 }
