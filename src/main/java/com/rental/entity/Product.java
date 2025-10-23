@@ -65,7 +65,7 @@ public class Product {
     @PrePersist
     protected void onCreate() {
         this.available = true;
-        this.regDate = LocalDate.now();
+        // this.regDate = LocalDate.now();
     }
 
     public int getAvailableStock() { // 대여가능재고

@@ -47,6 +47,6 @@ public class Review {
 
     @PrePersist
     protected void onCreate() {
-        this.regDate = LocalDateTime.now();
+        // this.regDate = LocalDateTime.now();
     }
 }

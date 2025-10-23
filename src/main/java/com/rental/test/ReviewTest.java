@@ -48,7 +48,7 @@ public class ReviewTest {
 
         for (Product p : products) {
             int reviewCount = 10 + random.nextInt(191); // 10~200개
-            double baseRating = 2.5 + 1.5 * (reviewCount / 200.0); // 리뷰 많으면 4점 근처, 적으면 2.5점 근처
+            double baseRating = 2.5 + 2.5 * (reviewCount / 200.0); // 리뷰 많으면 4.5점 근처, 적으면 2.5점 근처
             for (int i = 0; i < reviewCount; i++) {
                 Member randomMember = members.get(random.nextInt(members.size()));
 
@@ -56,6 +56,7 @@ public class ReviewTest {
                 double rating = baseRating + (random.nextInt(5) - 2) * 0.5;
                 // -1 ~ +1 범위, 0.5 단위
                 rating = Math.max(1.0, Math.min(5.0, rating)); // 1~5 제한
+                rating = Math.round(rating * 2) / 2.0; // 0.5 단위로 반올림
 
                 String title = getRandomTitle();
                 String content = getRandomContent();

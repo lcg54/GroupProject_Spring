@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "product_images")
-public class ProductImage { // 상품에 이미지를 여럿 쓰려고 테이블 분리 (이미지 하나만 쓸거면 추후 삭제)
+public class ProductImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_image_id")
