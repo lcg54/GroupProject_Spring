@@ -180,7 +180,7 @@ public class CartService {
                             product.getId(),
                             product.getName(),
                             product.getBrand().name(),
-                            averageMonthlyPrice, // ✅ Product.price 대신 월 납부액 평균
+                            averageMonthlyPrice,
                             product.getMainImage(),
                             agg.totalQuantity
                     );
