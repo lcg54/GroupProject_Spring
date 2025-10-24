@@ -45,7 +45,7 @@ public class RentalService {
                     .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
 
             // 대여료 계산 로직 (임시)
-            int monthlyPrice = (int) (product.getPrice() / (itemReq.getPeriodYears() * 8.0) - 5100);
+            int monthlyPrice = product.getPrice() / (itemReq.getPeriodYears() * 20) - 5100;
             int itemTotal = monthlyPrice * 12 * itemReq.getPeriodYears() * itemReq.getQuantity();
 
             RentalItem item = new RentalItem();

@@ -132,7 +132,6 @@ public class ProductTest {
             }
         }
         productRepository.saveAll(all);
-        System.out.println("📦 " + count + "개의 상품에 categoryImage가 추가 주입되었습니다.");
     }
 
     private String getCategoryName(Category category) {

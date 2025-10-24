@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class CartResponse {
-    private Long id;
+    private Long id; // cartId 추가
     private LocalDateTime createdAt;
     private List<CartItemResponse> items;
 
@@ -19,10 +19,11 @@ public class CartResponse {
     public static class CartItemResponse {
         private Long productId;
         private String productName;
+        private String brand;
         private int quantity;
-        private int pricePerUnit;
         private int periodYears;
         private LocalDate rentalStart;
         private int estimatedPrice;
+        private String mainImage;
     }
 }
