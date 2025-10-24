@@ -43,6 +43,8 @@ public class Review {
     @Column(length = 2000)
     private String content;
 
+    private int recommend;
+
     private LocalDateTime regDate;
 
     @PrePersist

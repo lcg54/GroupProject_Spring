@@ -19,6 +19,7 @@ public class ReviewResponse {
     private String title;
     private String content;
     private double rating;
+    private int recommend;
     private String regDate;
     private List<String> imageUrls;
 
