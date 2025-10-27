@@ -40,13 +40,12 @@ public class Product {
 
     @Column(nullable = false)
     private int totalStock; // 총 보유 수량
-
     @Column(nullable = false)
     private int reservedStock; // 예약(미확정/예약중) 수량
-
+    @Column(nullable = false)
+    private int shippingStock; // 배송 중인 수량
     @Column(nullable = false)
     private int rentedStock; // 현재 대여중인 수량
-
     @Column(nullable = false)
     private int repairStock; // 수리중인 수량
 
@@ -69,7 +68,7 @@ public class Product {
     }
 
     public int getAvailableStock() { // 대여가능재고
-        int unavailableStock = reservedStock + rentedStock + repairStock;
+        int unavailableStock = reservedStock + shippingStock + rentedStock + repairStock;
         return Math.max(totalStock - unavailableStock, 0);
     }
 }

@@ -1,5 +1,6 @@
 package com.rental.entity;
 
+import com.rental.constant.RentalStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,6 +40,14 @@ public class RentalItem {
     private int rentalPeriodYears; // 대여 기간 (3,4,5,6년)
     private LocalDate rentalStart; // 대여 시작일
     private LocalDate rentalEnd;   // 대여 종료일
+
+    @Enumerated(EnumType.STRING)
+    private RentalStatus status; // 대여 상태
+
+//    @PrePersist
+//    protected void onCreate() {
+//        if (this.status == null) this.status = RentalStatus.RESERVED;
+//    }
 
     // private LocalDate serviceDate; // 서비스 출장일
 }

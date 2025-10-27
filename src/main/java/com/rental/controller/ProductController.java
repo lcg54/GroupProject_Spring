@@ -31,7 +31,7 @@ public class ProductController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "12") int size
     ) {
         Page<ProductResponse> productPage = productService.getFilteredProducts(category, brand, available, keyword, sortBy, page, size);
 

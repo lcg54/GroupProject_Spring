@@ -32,7 +32,7 @@ public class MemberTest {
 
         List<Member> list = new ArrayList<>();
 
-        // ✅ 관리자 1명
+        // 관리자
         Member admin = new Member();
         admin.setUsername("admin01");
         admin.setName("관리자");
@@ -44,8 +44,9 @@ public class MemberTest {
         admin.setProfileImage("admin_profile.jpg");
         list.add(admin);
 
-        // ✅ 일반 회원 100명
-        for (int i = 1; i <= 100; i++) {
+        // 일반 회원
+        int userCount = 300;
+        for (int i = 1; i <= userCount; i++) {
             Member user = new Member();
             user.setUsername("user" + String.format("%03d", i));
             user.setName(getRandomKoreanName());
@@ -59,7 +60,7 @@ public class MemberTest {
         }
 
         memberRepository.saveAll(list);
-        System.out.println("✅ 회원 데이터 생성 완료: 관리자 1명 + 일반회원 100명 (" + list.size() + "명)");
+        System.out.println("✅ 회원 데이터 생성 완료: 관리자 1명 + 일반회원 " + userCount + "명 (" + list.size() + "명)");
     }
 
     // 랜덤 한국 이름 생성

@@ -32,7 +32,6 @@ public class ProductTest {
         Category[] categories = Category.values();
         Brand[] brands = Brand.values();
 
-        // 상품이미지 세팅 (카테고리별 통일)
         Map<Category, String> mainImages = new HashMap<>();
         Map<Category, List<String>> subImages = new HashMap<>();
         for (Category cat : categories) {
@@ -44,10 +43,9 @@ public class ProductTest {
             subImages.put(cat, subs);
         }
 
-        // 등록일 기준 설정
         LocalDate today = LocalDate.now();
-        LocalDate startDate = today.minusYears(8); // 8년 전부터 시작
-        int totalProducts = 120;
+        LocalDate startDate = today.minusYears(8); // 상품 등록일
+        int totalProducts = 80; // 상품 갯수
 
         for (int i = 1; i <= totalProducts; i++) {
             Category category = categories[random.nextInt(categories.length)];
@@ -59,41 +57,22 @@ public class ProductTest {
                     brand.name(), getCategoryName(category), i
             );
 
-            // 가격: 1,500,000 ~ 3,000,000 (랜덤)
-            int pricePerPeriod = 6 * (25 + random.nextInt(25)) * 10000;
-
-            // 기본 재고
-            int totalStock = 20 + random.nextInt(10);
-            int reservedStock = random.nextInt(5);
-            int rentedStock = random.nextInt(10);
-            int repairStock = random.nextInt(2);
-
-            // 약 12%의 상품은 대여불가 상태로 만들기
-            boolean makeUnavailable = random.nextDouble() < 0.12;
-            if (makeUnavailable) {
-                reservedStock = totalStock / 3;
-                rentedStock = totalStock / 2;
-                repairStock = totalStock - (reservedStock + rentedStock);
-            }
-
             Product p = new Product();
             p.setName(name);
             p.setCategory(category);
             p.setBrand(brand);
             p.setDescription(description);
-            p.setPrice(pricePerPeriod);
-            p.setTotalStock(totalStock);
-            p.setReservedStock(reservedStock);
-            p.setRentedStock(rentedStock);
-            p.setRepairStock(repairStock);
+            p.setPrice(6 * (25 + random.nextInt(25)) * 10000); // 상품 원가: 1,500,000 ~ 3,000,000원 (임시)
+            p.setTotalStock(30); // 총 재고 (임시)
+            p.setReservedStock(0);
+            p.setRentedStock(0);
+            p.setRepairStock(0);
+            p.setShippingStock(0);
+            p.setAvailable(p.getAvailableStock() > 0);
 
-            // 메인 이미지
             p.setMainImage(mainImages.get(category));
-
-            // 카테고리 이미지
             p.setCategoryImage("category_" + category.name() + ".png");
 
-            // 서브 이미지
             int seq = 1;
             for (String subFileName : subImages.get(category)) {
                 ProductImage img = new ProductImage();
@@ -103,8 +82,6 @@ public class ProductTest {
                 p.getImages().add(img);
             }
 
-            // ✅ 등록일: 8년 전 ~ 오늘 사이, 순차적으로 증가
-            // 오래된 상품부터 최신 상품 순으로 날짜 증가
             double progress = (double) (i - 1) / (totalProducts - 1);
             long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, today);
             LocalDate regDate = startDate.plusDays((long) (daysBetween * progress));
@@ -114,13 +91,10 @@ public class ProductTest {
         }
 
         productRepository.saveAll(list);
-        System.out.println("✅ " + list.size() + "개의 샘플 상품이 성공적으로 추가되었습니다.");
-
-        // 마지막으로 categoryImage 일괄 검증
         injectCategoryImages();
+        System.out.println("✅ " + list.size() + "개의 샘플 상품이 성공적으로 추가되었습니다.");
     }
 
-    // 이미 존재하는 모든 상품에 대해 categoryImage 필드 주입
     private void injectCategoryImages() {
         List<Product> all = productRepository.findAll();
         int count = 0;

@@ -2,16 +2,18 @@ package com.rental.test;
 
 import com.rental.entity.Member;
 import com.rental.entity.Product;
+import com.rental.entity.RentalItem;
 import com.rental.entity.Review;
 import com.rental.repository.MemberRepository;
-import com.rental.repository.ProductRepository;
+import com.rental.repository.RentalItemRepository;
 import com.rental.repository.ReviewRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 @SpringBootTest
@@ -20,7 +22,7 @@ public class ReviewTest {
     private ReviewRepository reviewRepository;
 
     @Autowired
-    private ProductRepository productRepository;
+    private RentalItemRepository rentalItemRepository;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -28,60 +30,76 @@ public class ReviewTest {
     private static final Random random = new Random();
 
     @Test
-    void insertSampleReviews() {
-        List<Product> products = productRepository.findAll();
-        List<Member> members = memberRepository.findAll();
-
-        if (products.isEmpty() || members.isEmpty()) {
-            System.out.println("❌ 상품 또는 회원 데이터가 없습니다. 리뷰 생성을 건너뜁니다.");
-            return;
-        }
-
+    @Transactional
+    @Rollback(false)
+    void insertSampleReviewsBasedOnActualRentals() {
         long existing = reviewRepository.count();
         if (existing > 0) {
             System.out.println("이미 리뷰가 존재하므로 샘플 추가를 생략합니다. (현재 " + existing + "개)");
             return;
         }
 
+        List<RentalItem> rentalItems = rentalItemRepository.findAll();
+        if (rentalItems.isEmpty()) {
+            System.out.println("❌ 대여 아이템 데이터가 없습니다. 리뷰 생성을 건너뜁니다.");
+            return;
+        }
+
         List<Review> reviewList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
-        for (Product p : products) {
-            int reviewCount = 10 + random.nextInt(191); // 10~200개
-            double baseRating = 2.5 + 2.5 * (reviewCount / 200.0); // 리뷰 많으면 4.5점 근처, 적으면 2.5점 근처
-            for (int i = 0; i < reviewCount; i++) {
-                Member randomMember = members.get(random.nextInt(members.size()));
+        // 각 렌탈 아이템에 대해 리뷰 생성 확률 (90%)
+        double reviewRate = 0.9;
 
-                // 각 리뷰별 랜덤 변동
-                double rating = baseRating + (random.nextInt(5) - 2) * 0.5;
-                // -1 ~ +1 범위, 0.5 단위
-                rating = Math.max(1.0, Math.min(5.0, rating)); // 1~5 제한
-                rating = Math.round(rating * 2) / 2.0; // 0.5 단위로 반올림
+        for (RentalItem item : rentalItems) {
+            // 확률적으로 일부 아이템만 리뷰 작성
+            if (random.nextDouble() > reviewRate) continue;
 
-                String title = getRandomTitle();
-                String content = getRandomContent();
+            // 작성 가능한 회원(주문자)과 상품 얻기
+            if (item.getRental() == null || item.getRental().getMember() == null) continue;
+            Member member = item.getRental().getMember();
+            Product product = item.getProduct();
+            if (member == null || product == null) continue;
 
-                // 작성일: 1년 전 ~ 오늘
-                long minDay = now.minusYears(1).atZone(ZoneId.systemDefault()).toEpochSecond();
-                long maxDay = now.atZone(ZoneId.systemDefault()).toEpochSecond();
-                long randomEpoch = minDay + (long) (random.nextDouble() * (maxDay - minDay));
-                LocalDateTime randomDate = LocalDateTime.ofEpochSecond(randomEpoch, 0, ZoneId.systemDefault().getRules().getOffset(now));
+            // 같은 실행 내 중복 생성 방지 (한 회원-상품 조합 당 한 건만)
+            boolean alreadyPlanned = reviewList.stream()
+                    .anyMatch(r -> r.getMember().equals(member) && r.getProduct().equals(product));
+            if (alreadyPlanned) continue;
 
-                Review review = Review.builder()
-                        .product(p)
-                        .member(randomMember)
-                        .rating(rating)
-                        .title(title)
-                        .content(content)
-                        .regDate(randomDate)
-                        .build();
+            // 평점 생성
+            double rating = 1.0 + random.nextDouble() * 4.0; // 1.0 ~ 5.0
+            rating = Math.round(rating * 2) / 2.0; // 0.5 단위 반올림
 
-                reviewList.add(review);
+            String title = getRandomTitle();
+            String content = getRandomContent();
+
+            // 리뷰 작성일: rentalItem.rentalEnd 기준으로 1~30일 후 (rentalEnd 없으면 rental.createdAt 후)
+            LocalDateTime baseDate;
+            if (item.getRentalEnd() != null) {
+                baseDate = item.getRentalEnd().atStartOfDay();
+            } else if (item.getRental() != null && item.getRental().getCreatedAt() != null) {
+                baseDate = item.getRental().getCreatedAt();
+            } else {
+                baseDate = now.minusDays(random.nextInt(60)); // 안전장치: 최근 시점
             }
+            LocalDateTime randomDate = baseDate.plusDays(1 + random.nextInt(30));
+
+            Review review = Review.builder()
+                    .product(product)
+                    .member(member)
+                    .rating(rating)
+                    .title(title)
+                    .content(content)
+                    .regDate(randomDate)
+                    .build();
+
+            reviewList.add(review);
         }
 
-        reviewRepository.saveAll(reviewList);
-        System.out.println("✅ " + reviewList.size() + "개의 샘플 리뷰가 성공적으로 추가되었습니다.");
+        if (!reviewList.isEmpty()) {
+            reviewRepository.saveAll(reviewList);
+        }
+        System.out.println("✅ " + reviewList.size() + "개의 실제 주문 기반 리뷰가 성공적으로 추가되었습니다.");
     }
 
     private String getRandomTitle() {

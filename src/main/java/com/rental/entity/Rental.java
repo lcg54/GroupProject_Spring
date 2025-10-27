@@ -30,9 +30,6 @@ public class Rental {
     @OneToMany(mappedBy = "rental", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RentalItem> items = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    private RentalStatus status; // 주문 상태
-
     private LocalDateTime createdAt; // 주문 생성일
 
     private int totalPrice; // 전체 합계 금액 (모든 rentalItem 합산)
@@ -40,6 +37,5 @@ public class Rental {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        if (this.status == null) this.status = RentalStatus.RESERVED;
     }
 }

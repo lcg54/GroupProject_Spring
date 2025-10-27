@@ -11,8 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class RentalResponse {
-    private Long id;
-    private RentalStatus status;
+    private Long id;  // 주문 ID
     private LocalDateTime createdAt;
     private int totalPrice;
     private List<RentalItemResponse> items;
@@ -20,6 +19,7 @@ public class RentalResponse {
     @Data
     @AllArgsConstructor
     public static class RentalItemResponse {
+        private Long itemId;
         private Long productId;
         private String productName;
         private int quantity;
@@ -28,5 +28,6 @@ public class RentalResponse {
         private LocalDate rentalStart;
         private LocalDate rentalEnd;
         private int itemTotalPrice;
+        private RentalStatus status;
     }
 }
