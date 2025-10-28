@@ -48,7 +48,7 @@ public class ReviewTest {
         List<Review> reviewList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
-        double reviewRate = 0.9;
+        double reviewRate = 0.8; // 리뷰 작성률 80%
 
         // 각 상품별 기존 리뷰 수 미리 조회
         Map<Long, Long> reviewCountMap = new HashMap<>();

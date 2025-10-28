@@ -44,10 +44,5 @@ public class RentalItem {
     @Enumerated(EnumType.STRING)
     private RentalStatus status; // 대여 상태
 
-//    @PrePersist
-//    protected void onCreate() {
-//        if (this.status == null) this.status = RentalStatus.RESERVED;
-//    }
-
     // private LocalDate serviceDate; // 서비스 출장일
 }

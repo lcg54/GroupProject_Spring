@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RentalItemRepository extends JpaRepository<RentalItem, Long> {
-    Page<RentalItem> findByStatusOrderByRentalEndAsc(RentalStatus status, Pageable pageable);
+    Page<RentalItem> findByStatus(RentalStatus status, Pageable pageable);
 
     long countByStatus(RentalStatus status);
 }

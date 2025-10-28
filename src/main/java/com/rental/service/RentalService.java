@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +42,9 @@ public class RentalService {
         int totalPrice = 0;
         List<RentalItem> items = new ArrayList<>();
 
+        LocalDate today = LocalDate.now();
+        LocalDate sixYearsAgo = today.minusYears(6);
+
         for (RentalRequest.RentalItemRequest itemReq : request.getItems()) {
             Product product = productRepository.findById(itemReq.getProductId())
                     .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
@@ -62,17 +66,16 @@ public class RentalService {
             item.setRentalStart(itemReq.getRentalStart());
             item.setRentalEnd(itemReq.getRentalStart().plusYears(itemReq.getPeriodYears()));
 
-            LocalDate today = LocalDate.now();
-            int qty = itemReq.getQuantity();
             LocalDate startDate = item.getRentalStart();
-            LocalDate sixYearsAgo = today.minusYears(6);
-            // 테스트 데이터 주입용 분기. 주입 이후로는 else만 동작
-            if (startDate.isBefore(sixYearsAgo)) { // 6년 이상 지난 주문은 반납 완료 처리
+            int qty = itemReq.getQuantity();
+
+            // 테스트 데이터 주입용 대여상태 분기
+            if (startDate.isBefore(sixYearsAgo)) { // 6년 이상 지난 주문 → 반납 완료 (샘플)
                 item.setStatus(RentalStatus.RETURNED);
-            } else if (startDate.isBefore(today)) { // 오늘 이전이면 대여중 처리
+            } else if (startDate.isBefore(today)) { // 오늘 이전 → 대여중 (샘플)
                 item.setStatus(RentalStatus.RENTED);
                 product.setRentedStock(product.getRentedStock() + qty);
-            } else { // 오늘 이후면 예약중 처리
+            } else { // 오늘 또는 이후 → 예약중 (실제 주문)
                 item.setStatus(RentalStatus.RESERVED);
                 product.setReservedStock(product.getReservedStock() + qty);
             }
@@ -82,8 +85,27 @@ public class RentalService {
             items.add(item);
             totalPrice += itemTotal;
         }
+
         rental.setItems(items);
         rental.setTotalPrice(totalPrice);
+
+        // 전체 아이템 중 가장 빠른 rentalStart를 기준으로 주문 생성일 결정
+        LocalDate earliestStart = items.stream()
+                .map(RentalItem::getRentalStart)
+                .min(LocalDate::compareTo)
+                .orElse(LocalDate.now());
+
+        LocalDateTime createdAt;
+
+        // 테스트 데이터 주입용 주문생성일 분기
+        if (earliestStart.isBefore(today)) { // 샘플 데이터
+            int daysBefore = 1 + (int) (Math.random() * 7); // 1~7일 전
+            createdAt = earliestStart.atStartOfDay().minusDays(daysBefore);
+        } else { // 실제 주문
+            createdAt = LocalDateTime.now();
+        }
+        rental.setCreatedAt(createdAt);
+
         rentalItemRepository.saveAll(items);
         return rentalRepository.save(rental);
     }
@@ -137,8 +159,18 @@ public class RentalService {
     // 관리자 전용 조회
     @Transactional(readOnly = true)
     public Page<RentalResponse.RentalItemResponse> getRentalItemsByStatus(RentalStatus status, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
-        Page<RentalItem> rentalItemsPage = rentalItemRepository.findByStatusOrderByRentalEndAsc(status, pageable);
+        Sort sort;
+        switch (status) {
+            case RESERVED, SHIPPING -> sort = Sort.by(Sort.Direction.ASC, "rentalStart"); // 예약일(미래) 가까운 순
+            case RENTED, REPAIR, LATE -> sort = Sort.by(Sort.Direction.ASC, "rentalEnd"); // 종료일(미래) 가까운 순
+            case RETURNED, CANCELED -> sort = Sort.by(Sort.Direction.DESC, "rentalEnd");  // 종료일(과거) 가까운 순
+            default -> sort = Sort.by(Sort.Direction.ASC, "rentalStart");
+        }
+
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        Page<RentalItem> rentalItemsPage = rentalItemRepository.findByStatus(status, pageable);
+
         List<RentalResponse.RentalItemResponse> itemResponses = rentalItemsPage.getContent().stream()
                 .map(item -> new RentalResponse.RentalItemResponse(
                         item.getId(),

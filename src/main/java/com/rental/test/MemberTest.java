@@ -45,7 +45,7 @@ public class MemberTest {
         list.add(admin);
 
         // 일반 회원
-        int userCount = 300;
+        int userCount = 700; // 회원수
         for (int i = 1; i <= userCount; i++) {
             Member user = new Member();
             user.setUsername("user" + String.format("%03d", i));
@@ -55,7 +55,7 @@ public class MemberTest {
             user.setPhone("010-" + (1000 + i) + "-" + (2000 + i));
             user.setAddress(getRandomAddress());
             user.setRole(Role.USER);
-            user.setProfileImage("user_profile_" + ((i % 5) + 1) + ".jpg"); // 5종류 프로필
+            user.setProfileImage("user_profile_" + i  + ".jpg"); // 5종류 프로필
             list.add(user);
         }
 

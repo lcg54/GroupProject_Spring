@@ -63,7 +63,7 @@ public class ProductTest {
             p.setBrand(brand);
             p.setDescription(description);
             p.setPrice(6 * (25 + random.nextInt(25)) * 10000); // 상품 원가: 1,500,000 ~ 3,000,000원 (임시)
-            p.setTotalStock(30); // 총 재고 (임시)
+            p.setTotalStock(50); // 총 재고 (임시)
             p.setReservedStock(0);
             p.setRentedStock(0);
             p.setRepairStock(0);
