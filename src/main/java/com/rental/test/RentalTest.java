@@ -60,8 +60,18 @@ public class RentalTest {
                     RentalItemRequest itemReq = new RentalItemRequest();
                     itemReq.setProductId(product.getId());
                     itemReq.setQuantity(quantity);
-                    itemReq.setPeriodYears(3 + random.nextInt(4)); // 3~6년
-                    itemReq.setRentalStart(today.minusDays(random.nextInt(1000))); // 오늘~1000일 전
+
+                    boolean isOldData = random.nextBoolean(); // 50% 확률
+                    if (isOldData) {
+                        int yearsAgo = 6 + random.nextInt(4); // 6~9년 전
+                        itemReq.setRentalStart(today.minusYears(yearsAgo)
+                                .minusDays(random.nextInt(365))); // 세부 날짜 랜덤
+                        itemReq.setPeriodYears(3 + random.nextInt(4)); // 3~6년
+                    } else {
+                        itemReq.setRentalStart(today.minusDays(random.nextInt(1000))); // 최근 1000일 이내
+                        itemReq.setPeriodYears(3 + random.nextInt(4)); // 3~6년
+                    }
+
                     items.add(itemReq);
                 }
 

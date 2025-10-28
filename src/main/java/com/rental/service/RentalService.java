@@ -64,11 +64,15 @@ public class RentalService {
 
             LocalDate today = LocalDate.now();
             int qty = itemReq.getQuantity();
-
-            if (item.getRentalStart().isBefore(today)) { // 테스트 데이터 주입용 루트 (오늘 이전 주문은 대여중으로 처리)
+            LocalDate startDate = item.getRentalStart();
+            LocalDate sixYearsAgo = today.minusYears(6);
+            // 테스트 데이터 주입용 분기. 주입 이후로는 else만 동작
+            if (startDate.isBefore(sixYearsAgo)) { // 6년 이상 지난 주문은 반납 완료 처리
+                item.setStatus(RentalStatus.RETURNED);
+            } else if (startDate.isBefore(today)) { // 오늘 이전이면 대여중 처리
                 item.setStatus(RentalStatus.RENTED);
                 product.setRentedStock(product.getRentedStock() + qty);
-            } else { // 앱에서 신규 주문 시 동작할 루트 (오늘 또는 이후 주문은 예약으로 처리)
+            } else { // 오늘 이후면 예약중 처리
                 item.setStatus(RentalStatus.RESERVED);
                 product.setReservedStock(product.getReservedStock() + qty);
             }

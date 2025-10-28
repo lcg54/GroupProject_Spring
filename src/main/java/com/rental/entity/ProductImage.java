@@ -22,5 +22,7 @@ public class ProductImage {
     @Column(nullable = false)
     private String fileName; // 서버에 저장된 파일명
 
+    private String imageUrl;
+
     private int seq; // 이미지 정렬 순서
 }

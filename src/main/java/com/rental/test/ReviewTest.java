@@ -48,52 +48,66 @@ public class ReviewTest {
         List<Review> reviewList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
-        // 각 렌탈 아이템에 대해 리뷰 생성 확률 (90%)
         double reviewRate = 0.9;
 
-        for (RentalItem item : rentalItems) {
-            // 확률적으로 일부 아이템만 리뷰 작성
-            if (random.nextDouble() > reviewRate) continue;
+        // 각 상품별 기존 리뷰 수 미리 조회
+        Map<Long, Long> reviewCountMap = new HashMap<>();
+        reviewRepository.findAll().forEach(r ->
+                reviewCountMap.merge(r.getProduct().getId(), 1L, Long::sum)
+        );
 
-            // 작성 가능한 회원(주문자)과 상품 얻기
+        for (RentalItem item : rentalItems) {
+            if (random.nextDouble() > reviewRate) continue;
             if (item.getRental() == null || item.getRental().getMember() == null) continue;
             Member member = item.getRental().getMember();
             Product product = item.getProduct();
             if (member == null || product == null) continue;
 
-            // 같은 실행 내 중복 생성 방지 (한 회원-상품 조합 당 한 건만)
             boolean alreadyPlanned = reviewList.stream()
                     .anyMatch(r -> r.getMember().equals(member) && r.getProduct().equals(product));
             if (alreadyPlanned) continue;
 
-            // 평점 생성
-            double rating = 1.0 + random.nextDouble() * 4.0; // 1.0 ~ 5.0
-            rating = Math.round(rating * 2) / 2.0; // 0.5 단위 반올림
+            // 상품별 기존 리뷰 수 확인
+            long existingReviews = reviewCountMap.getOrDefault(product.getId(), 0L);
+
+            // 리뷰 많은 상품일수록 평균이 높아지게 가중치 적용
+            double baseRating = 1.0 + random.nextDouble() * 4.0; // 1.0 ~ 5.0
+            double popularityBoost = Math.min(existingReviews / 20.0, 0.5); // 리뷰 20개당 +0.5까지 제한
+            double adjustedRating = Math.min(5.0, baseRating + popularityBoost);
+            adjustedRating = Math.round(adjustedRating * 2) / 2.0; // 0.5 단위 반올림
 
             String title = getRandomTitle();
             String content = getRandomContent();
 
-            // 리뷰 작성일: rentalItem.rentalEnd 기준으로 1~30일 후 (rentalEnd 없으면 rental.createdAt 후)
             LocalDateTime baseDate;
             if (item.getRentalEnd() != null) {
                 baseDate = item.getRentalEnd().atStartOfDay();
             } else if (item.getRental() != null && item.getRental().getCreatedAt() != null) {
                 baseDate = item.getRental().getCreatedAt();
             } else {
-                baseDate = now.minusDays(random.nextInt(60)); // 안전장치: 최근 시점
+                baseDate = now.minusDays(random.nextInt(60));
             }
+
             LocalDateTime randomDate = baseDate.plusDays(1 + random.nextInt(30));
+
+            // 리뷰 작성일이 오늘보다 미래면 현재 시점 근처로 조정
+            if (randomDate.isAfter(now)) {
+                randomDate = now.minusDays(random.nextInt(3));
+            }
 
             Review review = Review.builder()
                     .product(product)
                     .member(member)
-                    .rating(rating)
+                    .rating(adjustedRating)
                     .title(title)
                     .content(content)
                     .regDate(randomDate)
                     .build();
 
             reviewList.add(review);
+
+            // 리뷰 생성 후 카운트 업데이트
+            reviewCountMap.merge(product.getId(), 1L, Long::sum);
         }
 
         if (!reviewList.isEmpty()) {
