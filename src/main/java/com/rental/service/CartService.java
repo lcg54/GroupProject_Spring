@@ -5,6 +5,7 @@ import com.rental.entity.*;
 import com.rental.repository.CartRepository;
 import com.rental.repository.MemberRepository;
 import com.rental.repository.ProductRepository;
+import com.rental.util.PriceCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class CartService {
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
     private final RentalService rentalService;
+    private final PriceCalculator priceCalculator;
 
     // 장바구니 추가
     @Transactional
@@ -41,7 +43,7 @@ public class CartService {
             Product product = productRepository.findById(itemReq.getProductId())
                     .orElseThrow();
 
-            int estimatedPrice = calculateEstimatedPrice(product.getPrice(), itemReq.getPeriodYears());
+            int estimatedPrice = priceCalculator.calculateMonthlyPrice(product.getPrice(), itemReq.getPeriodYears());
 
             if (existingItem != null) {
                 existingItem.setQuantity(existingItem.getQuantity() + itemReq.getQuantity());
@@ -60,11 +62,6 @@ public class CartService {
             }
         }
         return cartRepository.save(cart);
-    }
-
-    // 월 납부액 계산 공식
-    private int calculateEstimatedPrice(int productPrice, int periodYears) {
-        return productPrice / (periodYears * 20) - 5100;
     }
 
     // dto 변환

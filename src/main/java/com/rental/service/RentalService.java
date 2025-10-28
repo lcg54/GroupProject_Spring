@@ -11,6 +11,7 @@ import com.rental.repository.MemberRepository;
 import com.rental.repository.ProductRepository;
 import com.rental.repository.RentalItemRepository;
 import com.rental.repository.RentalRepository;
+import com.rental.util.PriceCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class RentalService {
     private final RentalItemRepository rentalItemRepository;
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
+    private final PriceCalculator priceCalculator;
 
     // 대여 생성
     @Transactional
@@ -53,9 +55,8 @@ public class RentalService {
                 throw new IllegalArgumentException("상품 재고가 부족합니다: " + product.getName());
             }
 
-            // 대여료 계산 로직 (임시)
-            int monthlyPrice = product.getPrice() / (itemReq.getPeriodYears() * 20) - 5100;
-            int itemTotal = monthlyPrice * 12 * itemReq.getPeriodYears() * itemReq.getQuantity();
+            int monthlyPrice = priceCalculator.calculateMonthlyPrice(product.getPrice(), itemReq.getPeriodYears());
+            int itemTotal = priceCalculator.calculateTotalPrice(monthlyPrice, itemReq.getPeriodYears(), itemReq.getQuantity());
 
             RentalItem item = new RentalItem();
             item.setRental(rental);
