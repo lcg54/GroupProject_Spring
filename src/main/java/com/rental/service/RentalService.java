@@ -186,4 +186,26 @@ public class RentalService {
     public long countItemsByStatus(RentalStatus status) {
         return rentalItemRepository.countByStatus(status);
     }
+
+    // 회원별 대여 내역 조회
+    @Transactional(readOnly = true)
+    public List<RentalResponse> getRentalsByMemberId(Long memberId) {
+        // @Query 방식 사용 (N+1 문제 방지)
+        List<Rental> rentals = rentalRepository.findRentalsByMemberId(memberId);
+
+        // 또는 간단한 쿼리 메서드 사용
+        // List<Rental> rentals = rentalRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+
+        return rentals.stream()
+                .map(this::convertToResponse)
+                .toList();
+    }
+
+    // 특정 대여 상세 조회
+    @Transactional(readOnly = true)
+    public RentalResponse getRentalById(Long rentalId) {
+        Rental rental = rentalRepository.findById(rentalId)
+                .orElseThrow(() -> new IllegalArgumentException("대여 정보를 찾을 수 없습니다."));
+        return convertToResponse(rental);
+    }
 }

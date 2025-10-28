@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -65,8 +66,25 @@ public class RentalController {
         return ResponseEntity.ok(new TotalCountResponse(count));
     }
 
-    @Data
+    @Data // DTO인데 22
     public static class TotalCountResponse {
         private final long totalItems;
     }
+
+    
+    // 회원별 대여 내역 조회
+    @GetMapping("/member/{memberId}")
+    public ResponseEntity<List<RentalResponse>> getRentalsByMember(@PathVariable Long memberId) {
+        List<RentalResponse> rentals = rentalService.getRentalsByMemberId(memberId);
+        return ResponseEntity.ok(rentals);
+    }
+
+    // 특정 대여 상세 조회
+    @GetMapping("/{rentalId}")
+    public ResponseEntity<RentalResponse> getRentalDetail(@PathVariable Long rentalId) {
+        RentalResponse rental = rentalService.getRentalById(rentalId);
+        return ResponseEntity.ok(rental);
+    }
+
+    record ErrorResponse(String message) {}
 }
