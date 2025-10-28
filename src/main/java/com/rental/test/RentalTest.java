@@ -18,7 +18,6 @@ import java.util.Random;
 
 @SpringBootTest
 public class RentalTest {
-
     @Autowired
     private RentalService rentalService;
     @Autowired
@@ -30,11 +29,11 @@ public class RentalTest {
 
     @Test
     void insertSampleRentals() {
-        List<Member> members = memberRepository.findAllByIdBetween(2L, 301L); // 일반회원 전체
+        List<Member> members = memberRepository.findAllByIdBetween(2L, 701L); // 일반회원 전체
         List<Product> products = productRepository.findAll();
 
         LocalDate today = LocalDate.now();
-        int skipped = 0;
+        int created = 0;
 
         for (Member member : members) {
             int orderCount = 1 + random.nextInt(4); // 1~4건 주문
@@ -51,7 +50,6 @@ public class RentalTest {
                     // 재고 초과 방지 로직
                     int availableStock = product.getAvailableStock();
                     if (availableStock <= 0) {
-                        skipped++;
                         continue; // 대여 가능 재고 없음 → 건너뛰기
                     }
                     int maxQty = Math.min(availableStock, 2); // 상품당 1~2개, 단 재고 초과하지 않게
@@ -71,7 +69,7 @@ public class RentalTest {
                         itemReq.setRentalStart(today.minusDays(random.nextInt(1000))); // 최근 1000일 이내
                         itemReq.setPeriodYears(3 + random.nextInt(4)); // 3~6년
                     }
-
+                    created++;
                     items.add(itemReq);
                 }
 
@@ -82,7 +80,6 @@ public class RentalTest {
             }
         }
 
-        System.out.println("✅ 샘플 렌탈 생성 완료");
-        System.out.println("⚠️ 재고 부족 상품 수: " + skipped);
+        System.out.println("✅ 샘플 렌탈 " + created + "건 생성 완료");
     }
 }

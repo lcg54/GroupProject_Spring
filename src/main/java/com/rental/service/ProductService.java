@@ -77,7 +77,7 @@ public class ProductService {
                     .orElse(0.0);
         }
         return new ProductResponse(
-                p.getId(), p.getName(), p.getBrand(), p.getCategory(), p.getPrice(), p.getTotalStock(), p.getReservedStock(), p.getShippingStock(), p.getRentedStock(), p.getRepairStock(), p.getMainImage(), p.getDescription(), imageFileNames, averageRating, reviewCount
+                p.getId(), p.getName(), p.getBrand(), p.getCategory(), p.getPrice(), p.getTotalStock(), p.getReservedStock(), p.getShippingStock(), p.getRentedStock(), p.getRepairStock(), p.getAvailableStock(), p.getMainImage(), p.getDescription(),  imageFileNames, averageRating, reviewCount
         );
     }
 

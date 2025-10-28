@@ -45,7 +45,7 @@ public class ProductTest {
 
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.minusYears(15); // 상품 등록일
-        int totalProducts = 60; // 상품 갯수
+        int totalProducts = 80; // 상품 갯수
 
         for (int i = 1; i <= totalProducts; i++) {
             Category category = categories[random.nextInt(categories.length)];
