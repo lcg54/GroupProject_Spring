@@ -138,6 +138,7 @@ public class RentalService {
             case SHIPPING -> product.setShippingStock(Math.max(product.getShippingStock() - quantity, 0));
             case RENTED -> product.setRentedStock(Math.max(product.getRentedStock() - quantity, 0));
             case REPAIR -> product.setRepairStock(Math.max(product.getRepairStock() - quantity, 0));
+            case RETURN_REQUESTED -> product.setReturnRequestedStock(Math.max(product.getReturnRequestedStock() - quantity, 0));
             default -> {}
         }
         // 새 상태 재고 증가
@@ -146,9 +147,8 @@ public class RentalService {
             case SHIPPING -> product.setShippingStock(product.getShippingStock() + quantity);
             case RENTED -> product.setRentedStock(product.getRentedStock() + quantity);
             case REPAIR -> product.setRepairStock(product.getRepairStock() + quantity);
-            case RETURNED, CANCELED -> {
-                // 아무 처리 없음 (대여 가능 재고로 돌아감)
-            }
+            case RETURN_REQUESTED -> product.setReturnRequestedStock(product.getReturnRequestedStock() + quantity);
+            case RETURNED, CANCELED -> {} // 아무 처리 없음 (대여 가능 재고로 돌아감)
             default -> {}
         }
 
@@ -163,7 +163,7 @@ public class RentalService {
         Sort sort;
         switch (status) {
             case RESERVED, SHIPPING -> sort = Sort.by(Sort.Direction.ASC, "rentalStart"); // 예약일(미래) 가까운 순
-            case RENTED, REPAIR, LATE -> sort = Sort.by(Sort.Direction.ASC, "rentalEnd"); // 종료일(미래) 가까운 순
+            case RENTED, RETURN_REQUESTED -> sort = Sort.by(Sort.Direction.ASC, "rentalEnd"); // 종료일(미래) 가까운 순
             case RETURNED, CANCELED -> sort = Sort.by(Sort.Direction.DESC, "rentalEnd");  // 종료일(과거) 가까운 순
             default -> sort = Sort.by(Sort.Direction.ASC, "rentalStart");
         }
@@ -183,7 +183,8 @@ public class RentalService {
                         item.getRentalStart(),
                         item.getRentalEnd(),
                         item.getPricePerUnit() * 12 * item.getRentalPeriodYears() * item.getQuantity(),
-                        item.getStatus()
+                        item.getStatus(),
+                        item.getProduct().getMainImage()
                 )).toList();
 
         return new PageImpl<>(itemResponses, pageable, rentalItemsPage.getTotalElements());
@@ -203,7 +204,8 @@ public class RentalService {
                         item.getRentalStart(),
                         item.getRentalEnd(),
                         item.getPricePerUnit() * 12 * item.getRentalPeriodYears() * item.getQuantity(),
-                        item.getStatus()
+                        item.getStatus(),
+                        item.getProduct().getMainImage()
                 )).toList();
 
         return new RentalResponse(
@@ -240,5 +242,44 @@ public class RentalService {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new IllegalArgumentException("대여 정보를 찾을 수 없습니다."));
         return convertToResponse(rental);
+    }
+
+    // 예약 취소
+    @Transactional
+    public String cancelRentalItem(Long rentalItemId) {
+        RentalItem item = rentalItemRepository.findById(rentalItemId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 대여 상품을 찾을 수 없습니다."));
+
+        if (item.getStatus() != RentalStatus.RESERVED) {
+            throw new IllegalStateException("예약 중인 상품만 취소할 수 있습니다.");
+        }
+
+        Product product = item.getProduct();
+        int qty = item.getQuantity();
+
+        // 예약 재고 감소 및 일반 재고 복구
+        product.setReservedStock(Math.max(product.getReservedStock() - qty, 0));
+        productRepository.save(product);
+
+        item.setStatus(RentalStatus.CANCELED);
+        rentalItemRepository.save(item);
+
+        return "상품 예약이 취소되었습니다.";
+    }
+
+    // 반납 요청 (관리자 승인 대기)
+    @Transactional
+    public String requestReturn(Long rentalItemId) {
+        RentalItem item = rentalItemRepository.findById(rentalItemId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 대여 상품을 찾을 수 없습니다."));
+
+        if (item.getStatus() != RentalStatus.RENTED) {
+            throw new IllegalStateException("대여 중인 상품만 반납을 요청할 수 있습니다.");
+        }
+
+        item.setStatus(RentalStatus.RETURN_REQUESTED);
+        rentalItemRepository.save(item);
+
+        return "반납 요청이 접수되었습니다.";
     }
 }

@@ -71,7 +71,6 @@ public class RentalController {
         private final long totalItems;
     }
 
-    
     // 회원별 대여 내역 조회
     @GetMapping("/member/{memberId}")
     public ResponseEntity<List<RentalResponse>> getRentalsByMember(@PathVariable Long memberId) {
@@ -84,6 +83,20 @@ public class RentalController {
     public ResponseEntity<RentalResponse> getRentalDetail(@PathVariable Long rentalId) {
         RentalResponse rental = rentalService.getRentalById(rentalId);
         return ResponseEntity.ok(rental);
+    }
+
+    // 예약 취소
+    @PostMapping("/delete/{rentalItemId}")
+    public ResponseEntity<String> cancelRentalItem(@PathVariable Long rentalItemId) {
+        String result = rentalService.cancelRentalItem(rentalItemId);
+        return ResponseEntity.ok(result);
+    }
+
+    // 반납 요청
+    @PostMapping("/requestReturn/{rentalItemId}")
+    public ResponseEntity<String> requestReturn(@PathVariable Long rentalItemId) {
+        String result = rentalService.requestReturn(rentalItemId);
+        return ResponseEntity.ok(result);
     }
 
     record ErrorResponse(String message) {}

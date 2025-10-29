@@ -22,6 +22,7 @@ public class ProductResponse {
     private int shippingStock;
     private int rentedStock;
     private int repairStock;
+    private int returnRequestedStock;
     private int availableStock;
     private String mainImage;
     private String description;

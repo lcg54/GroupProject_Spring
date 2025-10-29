@@ -77,7 +77,7 @@ public class ProductService {
                     .orElse(0.0);
         }
         return new ProductResponse(
-                p.getId(), p.getName(), p.getBrand(), p.getCategory(), p.getPrice(), p.getTotalStock(), p.getReservedStock(), p.getShippingStock(), p.getRentedStock(), p.getRepairStock(), p.getAvailableStock(), p.getMainImage(), p.getDescription(),  imageFileNames, averageRating, reviewCount
+                p.getId(), p.getName(), p.getBrand(), p.getCategory(), p.getPrice(), p.getTotalStock(), p.getReservedStock(), p.getShippingStock(), p.getRentedStock(), p.getRepairStock(), p.getReturnRequestedStock(), p.getAvailableStock(), p.getMainImage(), p.getDescription(),  imageFileNames, averageRating, reviewCount
         );
     }
 
@@ -141,6 +141,7 @@ public class ProductService {
         product.setShippingStock(0);
         product.setRentedStock(0);
         product.setRepairStock(0);
+        product.setReturnRequestedStock(0);
         product.setAvailable(available != null ? available : true);
         product.setRegDate(LocalDate.now());
         product.setMainImage(mainImageFile);

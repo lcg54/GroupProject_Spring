@@ -29,5 +29,6 @@ public class RentalResponse {
         private LocalDate rentalEnd;
         private int itemTotalPrice;
         private RentalStatus status;
+        private String mainImage;
     }
 }
