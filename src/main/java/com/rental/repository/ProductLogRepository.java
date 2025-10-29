@@ -1,0 +1,14 @@
+package com.rental.repository;
+
+
+import com.rental.entity.ProductLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+public interface ProductLogRepository extends JpaRepository<ProductLog, Long> {
+    List<ProductLog> findByEventInOrderByCreatedAtDesc(Collection<String> events);
+    List<ProductLog> findByEventOrderByCreatedAtDesc(String event);
+}

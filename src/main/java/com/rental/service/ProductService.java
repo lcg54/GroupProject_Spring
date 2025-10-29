@@ -5,7 +5,9 @@ import com.rental.constant.Category;
 import com.rental.dto.ProductResponse;
 import com.rental.entity.Product;
 import com.rental.entity.ProductImage;
+import com.rental.entity.ProductLog;
 import com.rental.entity.Review;
+import com.rental.repository.ProductLogRepository;
 import com.rental.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class ProductService {
     private final ProductRepository productRepository;
+    private final ProductLogRepository productLogRepository;
 
     @Value("${productImageLocation}")
     private String uploadDir;
@@ -86,7 +89,6 @@ public class ProductService {
         return productRepository.findByCategoryImageContaining(keyword);
     }
 
-
     // 상품 등록
     public ProductResponse register(
             List<MultipartFile> images,
@@ -96,7 +98,8 @@ public class ProductService {
             String description,
             Integer price,
             Boolean available,
-            Integer totalStock
+            Integer totalStock,
+            String adminName
     ) throws IOException {
 
         if (uploadDir == null || uploadDir.isBlank()) {
@@ -152,6 +155,18 @@ public class ProductService {
         product.setImages(imageEntities);
 
         productRepository.save(product);
+
+        String finalAdmin = (adminName != null && !adminName.isBlank()) ? adminName : "관리자";
+
+        productLogRepository.save(
+                ProductLog.builder()
+                        .productId(product.getId())
+                        .productName(product.getName())
+                        .adminName(finalAdmin)
+                        .event("CREATE")
+                        .build()
+        );
+
         return convertToResponse(product);
     }
 
@@ -170,7 +185,8 @@ public class ProductService {
             Integer shippingStock,
             Integer rentedStock,
             Integer repairStock,
-            List<String> existingImages
+            List<String> existingImages,
+            String adminName
     ) throws IOException {
 
         Product product = productRepository.findById(id)
@@ -188,7 +204,6 @@ public class ProductService {
         product.setShippingStock(Optional.ofNullable(shippingStock).orElse(0));
         product.setRentedStock(Optional.ofNullable(rentedStock).orElse(0));
         product.setRepairStock(Optional.ofNullable(repairStock).orElse(0));
-
 
         if (product.getImages() == null) product.setImages(new ArrayList<>());
         List<String> keep = (existingImages == null) ? Collections.emptyList() : existingImages;
@@ -235,12 +250,33 @@ public class ProductService {
         }
 
         productRepository.save(product);
+
+        String finalAdmin = (adminName != null && !adminName.isBlank()) ? adminName : "관리자";
+        productLogRepository.save(
+                ProductLog.builder()
+                        .productId(product.getId())
+                        .productName(product.getName())
+                        .adminName(finalAdmin)
+                        .event("UPDATE")
+                        .build()
+        );
     }
 
     // 상품 삭제
-    public void deleteProduct(Long id) {
+    public void deleteProduct(Long id, String adminName) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상품입니다."));
+
+        String finalAdmin = (adminName != null && !adminName.isBlank()) ? adminName : "관리자";
+
+        productLogRepository.save(
+                ProductLog.builder()
+                        .productId(product.getId())
+                        .productName(product.getName())
+                        .adminName(finalAdmin)
+                        .event("DELETE")
+                        .build()
+        );
 
         productRepository.delete(product);
     }
