@@ -26,10 +26,6 @@ public class Inquiry { // 문의글
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rental_item_id", nullable = false)
-    private RentalItem rentalItem;
-
     @OneToOne(mappedBy = "inquiry", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private InquiryComment adminComment;
 
@@ -42,6 +38,9 @@ public class Inquiry { // 문의글
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InquiryType type; // 문의 사유
+
+    @Column(nullable = false)
+    private boolean isSecret = false;
 
     private LocalDateTime createdAt;
 

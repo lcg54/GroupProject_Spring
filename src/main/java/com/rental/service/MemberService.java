@@ -1,6 +1,6 @@
 package com.rental.service;
 
-import com.rental.dto.MemberRequestDto;
+import com.rental.dto.MemberRequest;
 import com.rental.entity.Member;
 import com.rental.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class MemberService {
     @Value("${productImageLocation:C:\\\\shop\\\\images}")
     private String uploadDir;
 
-    public Member registerMember(MemberRequestDto dto, MultipartFile profileImage) throws IOException {
+    public Member registerMember(MemberRequest dto, MultipartFile profileImage) throws IOException {
         // 이메일 중복 체크
         if (memberRepository.findByEmail(dto.getEmail()) != null) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
@@ -68,7 +68,7 @@ public class MemberService {
         return member;
     }
 
-    public Member updateMember(MemberRequestDto dto, MultipartFile profileImage) throws IOException {
+    public Member updateMember(MemberRequest dto, MultipartFile profileImage) throws IOException {
         Member member = memberRepository.findByUsername(dto.getUsername());
 
         if (member == null) {

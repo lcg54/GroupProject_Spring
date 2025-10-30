@@ -1,6 +1,6 @@
 package com.rental.controller;
 
-import com.rental.dto.MemberRequestDto;
+import com.rental.dto.MemberRequest;
 import com.rental.entity.Member;
 import com.rental.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +20,10 @@ public class MemberController {
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<?> registerMember(
-            @ModelAttribute MemberRequestDto memberRequestDto,
+            @ModelAttribute MemberRequest memberRequest,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
         try {
-            Member saved = memberService.registerMember(memberRequestDto, profileImage);
+            Member saved = memberService.registerMember(memberRequest, profileImage);
 
             // 비밀번호 제거 후 반환
             Map<String, Object> response = createMemberResponse(saved);
@@ -57,10 +57,10 @@ public class MemberController {
 
     @PutMapping(value = "/edit", consumes = {"multipart/form-data"})
     public ResponseEntity<?> editMember(
-            @ModelAttribute MemberRequestDto memberRequestDto,
+            @ModelAttribute MemberRequest memberRequest,
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
         try {
-            Member updated = memberService.updateMember(memberRequestDto, profileImage);
+            Member updated = memberService.updateMember(memberRequest, profileImage);
 
             // 비밀번호 제거 후 반환
             Map<String, Object> response = createMemberResponse(updated);

@@ -1,60 +1,66 @@
 package com.rental.controller;
 
-import com.rental.constant.InquiryType;
-import com.rental.entity.Inquiry;
-import com.rental.entity.InquiryComment;
+import com.rental.dto.InquiryCommentRequest;
+import com.rental.dto.InquiryRequest;
+import com.rental.dto.InquiryResponse;
 import com.rental.service.InquiryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/inquiry")
+@RequestMapping("/product/{productId}/inquiry")
 public class InquiryController {
-
     private final InquiryService inquiryService;
 
     // 상품별 문의글 조회
-    @GetMapping("/{productId}")
-    public ResponseEntity<List<Inquiry>> getInquiriesByProduct(@PathVariable Long productId) {
-        return ResponseEntity.ok(inquiryService.getInquiriesByProduct(productId));
+    @GetMapping
+    public ResponseEntity<Page<InquiryResponse>> getInquiriesByProduct(
+            @PathVariable Long productId,
+            @RequestParam Long memberId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "desc") String sort
+    ) {
+        Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
+
+        return ResponseEntity.ok(inquiryService.getInquiriesByProduct(productId, memberId, pageable));
     }
 
-    // 문의글 등록
-    @PostMapping
-    public ResponseEntity<?> createInquiry(@RequestBody Map<String, Object> req) {
-        try {
-            Long memberId = ((Number) req.get("memberId")).longValue();
-            Long productId = ((Number) req.get("productId")).longValue();
-            String title = (String) req.get("title");
-            String content = (String) req.get("content");
-            InquiryType type = InquiryType.valueOf((String) req.get("type"));
-
-            Inquiry saved = inquiryService.createInquiry(memberId, productId, title, content, type);
-            return ResponseEntity.ok(saved);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    // 문의글 생성
+    @PostMapping("/write")
+    public ResponseEntity<?> createInquiry(
+            @PathVariable Long productId,
+            @RequestBody InquiryRequest inquiryRequest
+    ) {
+        var saved = inquiryService.createInquiry(
+                inquiryRequest.getMemberId(),
+                productId,
+                inquiryRequest.getTitle(),
+                inquiryRequest.getContent(),
+                inquiryRequest.getType(),
+                inquiryRequest.getIsSecret()
+        );
+        return ResponseEntity.ok(saved);
     }
 
-    // 관리자 답글 등록
+    // 관리자 답변 등록
     @PostMapping("/{inquiryId}/comment")
     public ResponseEntity<?> createAdminComment(
+            @PathVariable Long productId,
             @PathVariable Long inquiryId,
-            @RequestBody Map<String, Object> req
+            @RequestBody InquiryCommentRequest inquiryCommentRequest
     ) {
-        try {
-            Long adminId = ((Number) req.get("adminId")).longValue();
-            String comment = (String) req.get("comment");
-
-            InquiryComment saved = inquiryService.createAdminComment(adminId, inquiryId, comment);
-            return ResponseEntity.ok(saved);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        var saved = inquiryService.createAdminComment(
+                inquiryId,
+                inquiryCommentRequest.getAdminId(),
+                inquiryCommentRequest.getComment()
+        );
+        return ResponseEntity.ok(saved);
     }
 }
