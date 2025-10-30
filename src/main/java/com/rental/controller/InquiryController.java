@@ -9,8 +9,6 @@ import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/product/{productId}/inquiry")
@@ -21,7 +19,7 @@ public class InquiryController {
     @GetMapping
     public ResponseEntity<Page<InquiryResponse>> getInquiriesByProduct(
             @PathVariable Long productId,
-            @RequestParam Long memberId,
+            @RequestParam(required = false) Long memberId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "desc") String sort

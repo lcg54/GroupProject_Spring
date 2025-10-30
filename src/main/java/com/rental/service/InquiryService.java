@@ -23,13 +23,24 @@ public class InquiryService {
     // 상품별 문의글 조회
     public Page<InquiryResponse> getInquiriesByProduct(Long productId, Long memberId, Pageable pageable) {
         Page<Inquiry> inquiries = inquiryRepository.findByProductId(productId, pageable);
+        // 비로그인 조회
+        if (memberId == null) {
+            return inquiries.map(inquiry -> {
+                InquiryResponse response = convertToDto(inquiry);
+                // 비공개글 처리
+                if (inquiry.isSecret()) {
+                    response.setTitle("비공개 문의글입니다.");
+                    response.setContent("비공개 문의글입니다.");
+                }
+                return response;
+            });
+        }
+        // 로그인 조회
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-
         return inquiries.map(inquiry -> {
             InquiryResponse response = convertToDto(inquiry);
-
-            // 비공개 글이면 작성자와 관리자만 보이게
+            // 비공개글이어도 작성자와 관리자는 조회 가능
             if (inquiry.isSecret()
                     && !inquiry.getMember().getId().equals(memberId)
                     && !member.getRole().equals(Role.ADMIN))
@@ -38,7 +49,6 @@ public class InquiryService {
                 response.setContent("비공개 문의글입니다.");
                 response.setSecret(true);
             }
-
             return response;
         });
     }
