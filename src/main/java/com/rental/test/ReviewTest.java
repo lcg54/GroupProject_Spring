@@ -84,7 +84,7 @@ public class ReviewTest {
             long daysBetween = Math.max(1, today.toEpochDay() - orderLocalDate.toEpochDay());
             LocalDateTime reviewDate = orderDate.plusDays(random.nextInt((int) daysBetween + 1));
 
-            // 이미지 첨부 (임시로 카테고리 이미지 넣어둠)
+            // 이미지 첨부 (임시로 카테고리이미지)
             int imageCount = 1 + random.nextInt(3); // 1~3장
             List<ReviewImage> images = new ArrayList<>();
             for (int i = 0; i < imageCount; i++) {
