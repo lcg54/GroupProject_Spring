@@ -2,6 +2,7 @@ package com.rental.controller;
 
 import com.rental.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,5 +44,10 @@ public class ReviewController {
             @RequestParam(defaultValue = "latest") String sortOrder
     ) {
         return ResponseEntity.ok(reviewService.getReviewsByMember(memberId, page, size, sortOrder));
+    }
+
+    @DeleteMapping("/{reviewId}/delete")
+    public ResponseEntity<?> deleteReview(@PathVariable Long reviewId, @RequestParam Long memberId) {
+        return ResponseEntity.ok(reviewService.deleteReview(reviewId, memberId));
     }
 }

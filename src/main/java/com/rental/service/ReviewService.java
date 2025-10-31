@@ -149,4 +149,19 @@ public class ReviewService {
         private final double averageRating;
         private final int[] ratingCounts;
     }
+
+    // 리뷰 삭제
+    @Transactional
+    public String deleteReview(Long reviewId, Long memberId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new IllegalArgumentException("리뷰를 찾을 수 없습니다."));
+
+        // 리뷰 작성자와 로그인한 유저가 일치하는지
+        if (!review.getMember().getId().equals(memberId)) {
+            throw new RuntimeException("삭제 권한이 없습니다.");
+        }
+
+        reviewRepository.delete(review);
+        return "리뷰가 삭제되었습니다.";
+    }
 }
