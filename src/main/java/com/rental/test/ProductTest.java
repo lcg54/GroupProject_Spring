@@ -24,7 +24,6 @@ public class ProductTest {
         long existing = productRepository.count();
         if (existing > 0) {
             System.out.println("이미 상품이 존재하므로 샘플 추가를 생략합니다. (현재 " + existing + "개)");
-            injectCategoryImages();
             return;
         }
 

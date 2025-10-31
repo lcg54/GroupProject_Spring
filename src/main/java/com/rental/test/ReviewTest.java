@@ -84,11 +84,11 @@ public class ReviewTest {
             long daysBetween = Math.max(1, today.toEpochDay() - orderLocalDate.toEpochDay());
             LocalDateTime reviewDate = orderDate.plusDays(random.nextInt((int) daysBetween + 1));
 
-            // 이미지 무작위 첨부
+            // 이미지 첨부 (임시로 카테고리 이미지 넣어둠)
             int imageCount = 1 + random.nextInt(3); // 1~3장
             List<ReviewImage> images = new ArrayList<>();
             for (int i = 0; i < imageCount; i++) {
-                String fileName = getRandomProductImage(product.getId(), i);
+                String fileName = "category_" + product.getCategory().name() + ".png";
                 ReviewImage image = ReviewImage.builder()
                         .fileName(fileName)
                         .seq(i)
@@ -145,14 +145,5 @@ public class ReviewTest {
                 "추천받아서 샀는데 후회 없습니다."
         };
         return contents[random.nextInt(contents.length)];
-    }
-
-    private String getRandomProductImage(Long productId, int seq) {
-        String[] sampleImages = {
-                "camera_01.jpg", "laptop_02.jpg", "cleaner_03.jpg",
-                "tv_04.jpg", "microwave_05.jpg", "speaker_06.jpg",
-                "aircon_07.jpg", "fan_08.jpg", "watch_09.jpg"
-        };
-        return "product_" + productId + "_" + sampleImages[random.nextInt(sampleImages.length)];
     }
 }

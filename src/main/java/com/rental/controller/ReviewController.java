@@ -20,7 +20,7 @@ public class ReviewController {
             @RequestParam Long productId,
             @RequestParam(required = false) Long memberId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "3") int size,
             @RequestParam(defaultValue = "latest") String sortOrder
     ) {
         return ResponseEntity.ok(reviewService.getReviews(productId, memberId, page, size, sortOrder));
