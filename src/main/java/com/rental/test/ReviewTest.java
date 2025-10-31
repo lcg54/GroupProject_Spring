@@ -1,18 +1,14 @@
 package com.rental.test;
 
-import com.rental.entity.Member;
-import com.rental.entity.Product;
-import com.rental.entity.RentalItem;
-import com.rental.entity.Review;
-import com.rental.repository.MemberRepository;
-import com.rental.repository.RentalItemRepository;
-import com.rental.repository.ReviewRepository;
+import com.rental.entity.*;
+import com.rental.repository.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -20,12 +16,12 @@ import java.util.*;
 public class ReviewTest {
     @Autowired
     private ReviewRepository reviewRepository;
-
     @Autowired
     private RentalItemRepository rentalItemRepository;
-
     @Autowired
     private MemberRepository memberRepository;
+    @Autowired
+    private ProductRepository productRepository;
 
     private static final Random random = new Random();
 
@@ -48,10 +44,9 @@ public class ReviewTest {
         List<Review> reviewList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
-        double reviewRate = 0.8; // 리뷰 작성률 80%
-
-        // 각 상품별 기존 리뷰 수 미리 조회
+        double reviewRate = 0.8; // 리뷰 작성 확률 80%
         Map<Long, Long> reviewCountMap = new HashMap<>();
+
         reviewRepository.findAll().forEach(r ->
                 reviewCountMap.merge(r.getProduct().getId(), 1L, Long::sum)
         );
@@ -59,60 +54,72 @@ public class ReviewTest {
         for (RentalItem item : rentalItems) {
             if (random.nextDouble() > reviewRate) continue;
             if (item.getRental() == null || item.getRental().getMember() == null) continue;
+
             Member member = item.getRental().getMember();
             Product product = item.getProduct();
             if (member == null || product == null) continue;
 
+            // 이미 같은 회원이 같은 상품에 대해 리뷰 예정이라면 skip
             boolean alreadyPlanned = reviewList.stream()
                     .anyMatch(r -> r.getMember().equals(member) && r.getProduct().equals(product));
             if (alreadyPlanned) continue;
 
-            // 상품별 기존 리뷰 수 확인
             long existingReviews = reviewCountMap.getOrDefault(product.getId(), 0L);
 
-            // 리뷰 많은 상품일수록 평균이 높아지게 가중치 적용
-            double baseRating = 1.0 + random.nextDouble() * 4.0; // 1.0 ~ 5.0
-            double popularityBoost = Math.min(existingReviews / 20.0, 0.5); // 리뷰 20개당 +0.5까지 제한
+            // 평점 가중치 계산
+            double baseRating = 1.0 + random.nextDouble() * 4.0;
+            double popularityBoost = Math.min(existingReviews / 20.0, 0.5);
             double adjustedRating = Math.min(5.0, baseRating + popularityBoost);
-            adjustedRating = Math.round(adjustedRating * 2) / 2.0; // 0.5 단위 반올림
+            adjustedRating = Math.round(adjustedRating);
 
             String title = getRandomTitle();
             String content = getRandomContent();
 
-            LocalDateTime baseDate;
-            if (item.getRentalEnd() != null) {
-                baseDate = item.getRentalEnd().atStartOfDay();
-            } else if (item.getRental() != null && item.getRental().getCreatedAt() != null) {
-                baseDate = item.getRental().getCreatedAt();
-            } else {
-                baseDate = now.minusDays(random.nextInt(60));
-            }
+            // 리뷰 날짜: 주문일 이후, 오늘 이전
+            LocalDateTime orderDate = (item.getRental() != null && item.getRental().getCreatedAt() != null)
+                    ? item.getRental().getCreatedAt()
+                    : now.minusDays(random.nextInt(90));
+            LocalDate orderLocalDate = orderDate.toLocalDate();
+            LocalDate today = LocalDate.now();
+            long daysBetween = Math.max(1, today.toEpochDay() - orderLocalDate.toEpochDay());
+            LocalDateTime reviewDate = orderDate.plusDays(random.nextInt((int) daysBetween + 1));
 
-            LocalDateTime randomDate = baseDate.plusDays(1 + random.nextInt(30));
-
-            // 리뷰 작성일이 오늘보다 미래면 현재 시점 근처로 조정
-            if (randomDate.isAfter(now)) {
-                randomDate = now.minusDays(random.nextInt(3));
+            // 이미지 무작위 첨부
+            int imageCount = 1 + random.nextInt(3); // 1~3장
+            List<ReviewImage> images = new ArrayList<>();
+            for (int i = 0; i < imageCount; i++) {
+                String fileName = getRandomProductImage(product.getId(), i);
+                ReviewImage image = ReviewImage.builder()
+                        .fileName(fileName)
+                        .seq(i)
+                        .build();
+                images.add(image);
             }
 
             Review review = Review.builder()
                     .product(product)
                     .member(member)
+                    .rentalItem(item)
                     .rating(adjustedRating)
                     .title(title)
                     .content(content)
-                    .regDate(randomDate)
+                    .regDate(reviewDate)
+                    .images(images)
                     .build();
 
-            reviewList.add(review);
+            // 리뷰와 이미지 연결
+            for (ReviewImage img : images) {
+                img.setReview(review);
+            }
 
-            // 리뷰 생성 후 카운트 업데이트
+            reviewList.add(review);
             reviewCountMap.merge(product.getId(), 1L, Long::sum);
         }
 
         if (!reviewList.isEmpty()) {
             reviewRepository.saveAll(reviewList);
         }
+
         System.out.println("✅ " + reviewList.size() + "개의 실제 주문 기반 리뷰가 성공적으로 추가되었습니다.");
     }
 
@@ -138,5 +145,14 @@ public class ReviewTest {
                 "추천받아서 샀는데 후회 없습니다."
         };
         return contents[random.nextInt(contents.length)];
+    }
+
+    private String getRandomProductImage(Long productId, int seq) {
+        String[] sampleImages = {
+                "camera_01.jpg", "laptop_02.jpg", "cleaner_03.jpg",
+                "tv_04.jpg", "microwave_05.jpg", "speaker_06.jpg",
+                "aircon_07.jpg", "fan_08.jpg", "watch_09.jpg"
+        };
+        return "product_" + productId + "_" + sampleImages[random.nextInt(sampleImages.length)];
     }
 }

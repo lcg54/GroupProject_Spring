@@ -17,10 +17,20 @@ public class ReviewController {
     @GetMapping("/list")
     public ResponseEntity<Map<String, Object>> getReviews(
             @RequestParam Long productId,
+            @RequestParam(required = false) Long memberId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "latest") String sortOrder
     ) {
-        return ResponseEntity.ok(reviewService.getReviews(productId, page, size, sortOrder));
+        return ResponseEntity.ok(reviewService.getReviews(productId, memberId, page, size, sortOrder));
+    }
+
+    // 리뷰 추천
+    @PostMapping("/recommend")
+    public ResponseEntity<?> toggleRecommend(@RequestBody Map<String, Long> request) {
+        Long reviewId = request.get("reviewId");
+        Long memberId = request.get("memberId");
+        var result = reviewService.toggleRecommend(reviewId, memberId);
+        return ResponseEntity.ok(result);
     }
 }

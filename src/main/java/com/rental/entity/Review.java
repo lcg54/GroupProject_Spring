@@ -43,7 +43,7 @@ public class Review {
     @Column(length = 2000)
     private String content;
 
-    private int recommend;
+    private int recommend = 0;
 
     private LocalDateTime regDate;
 

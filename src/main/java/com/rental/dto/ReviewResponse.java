@@ -20,10 +20,11 @@ public class ReviewResponse {
     private String content;
     private double rating;
     private int recommend;
+    private boolean recommended;
     private String regDate;
     private List<String> imageUrls;
 
-    public static ReviewResponse from(Review review) {
+    public static ReviewResponse from(Review review, boolean recommended) {
         return ReviewResponse.builder()
                 .id(review.getId())
                 .memberName(review.getMember() != null ? review.getMember().getName() : "탈퇴한 회원")
@@ -31,6 +32,8 @@ public class ReviewResponse {
                 .title(review.getTitle())
                 .content(review.getContent())
                 .rating(review.getRating())
+                .recommend(review.getRecommend())
+                .recommended(recommended)
                 .regDate(review.getRegDate() != null ? review.getRegDate().toString() : null)
                 .imageUrls(review.getImages() != null
                         ? review.getImages().stream()
