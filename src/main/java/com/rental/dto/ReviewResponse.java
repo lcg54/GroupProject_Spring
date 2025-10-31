@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 @Builder
 public class ReviewResponse {
     private Long id;
+    private Long productId;
     private String memberName;
     private String productName;
     private String title;
@@ -27,6 +28,7 @@ public class ReviewResponse {
     public static ReviewResponse from(Review review, boolean recommended) {
         return ReviewResponse.builder()
                 .id(review.getId())
+                .productId(review.getProduct() != null ? review.getProduct().getId() : null)
                 .memberName(review.getMember() != null ? review.getMember().getName() : "탈퇴한 회원")
                 .productName(review.getProduct() != null ? review.getProduct().getName() : null)
                 .title(review.getTitle())

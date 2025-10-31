@@ -33,4 +33,15 @@ public class ReviewController {
         var result = reviewService.toggleRecommend(reviewId, memberId);
         return ResponseEntity.ok(result);
     }
+
+    // 회원별 리뷰 조회
+    @GetMapping("/member")
+    public ResponseEntity<Map<String, Object>> getMemberReviews(
+            @RequestParam Long memberId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "latest") String sortOrder
+    ) {
+        return ResponseEntity.ok(reviewService.getReviewsByMember(memberId, page, size, sortOrder));
+    }
 }
