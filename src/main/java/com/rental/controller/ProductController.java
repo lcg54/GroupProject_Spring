@@ -10,7 +10,6 @@ import com.rental.entity.ProductLog;
 import com.rental.repository.ProductLogRepository;
 import com.rental.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -79,9 +78,7 @@ public class ProductController {
     }
 
     // 상품 등록
-    @PostMapping(
-            value = "/register",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductResponse> register(
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestParam String name,
@@ -90,11 +87,9 @@ public class ProductController {
             @RequestParam(required = false) String description,
             @RequestParam Integer price,
             @RequestParam(defaultValue = "true") Boolean available,
-            @RequestParam Integer totalStock,
-            @RequestParam(name = "adminName", required = false, defaultValue = "관리자") String adminName
+            @RequestParam Integer totalStock
     ) throws IOException {
-        ProductResponse saved = productService.register(images, name, category, brand, description, price, available, totalStock, adminName
-        );
+        ProductResponse saved = productService.register(images, name, category, brand, description, price, available, totalStock);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
@@ -114,16 +109,14 @@ public class ProductController {
             @RequestParam(name = "shippingStock", defaultValue = "0") Integer shippingStock,
             @RequestParam(name = "rentedStock",   defaultValue = "0") Integer rentedStock,
             @RequestParam(name = "repairStock",   defaultValue = "0") Integer repairStock,
-            @RequestParam(name = "existingImages", required = false, defaultValue = "[]") String existingImages,
-            @RequestParam(name = "adminName", required = false,defaultValue = "관리자") String adminName
+            @RequestParam(name = "existingImages", required = false, defaultValue = "[]") String existingImages
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             List<String> existing = (existingImages == null || existingImages.isBlank())
                     ? Collections.emptyList()
-                    : mapper.readValue(existingImages, new TypeReference<List<String>>() {
-            });
-            productService.updateProduct(id, images, name, category, brand, description, price, available, totalStock, reservedStock, shippingStock, rentedStock, repairStock, existing, adminName);
+                    : mapper.readValue(existingImages, new TypeReference<>() {});
+            productService.updateProduct(id, images, name, category, brand, description, price, available, totalStock, reservedStock, shippingStock, rentedStock, repairStock, existing);
             return ResponseEntity.ok("상품 수정 완료");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(java.util.Map.of("message", "상품 수정 실패: " + e.getMessage()));
@@ -132,12 +125,9 @@ public class ProductController {
 
     // 상품 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(
-            @PathVariable Long id,
-            @RequestParam(name = "adminName", required = false,defaultValue = "관리자") String adminName
-    ) {
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         try{
-            productService.deleteProduct(id, adminName);
+            productService.deleteProduct(id);
             return ResponseEntity.ok(java.util.Map.of("message", "상품 삭제 완료"));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -161,15 +151,16 @@ public class ProductController {
         return ResponseEntity.ok(logForm(logs));
     }
 
+    // 로그용 내부 dto
     private List<Map<String, Object>> logForm(List<ProductLog> logs) {
         List<Map<String, Object>> result = new ArrayList<>();
         for (ProductLog log : logs) {
-            Map<String, Object> logupdate = new HashMap<>();
-            logupdate.put("productName", log.getProductName());
-            logupdate.put("adminName", log.getAdminName());
-            logupdate.put("createdAt", log.getCreatedAt());
-            logupdate.put("event", log.getEvent());         // 프론트에서 원하면 표시 가능
-            result.add(logupdate);
+            Map<String, Object> logUpdate = new HashMap<>();
+            logUpdate.put("productName", log.getProduct().getName());
+            logUpdate.put("adminName", log.getMember().getName());
+            logUpdate.put("createdAt", log.getCreatedAt());
+            logUpdate.put("event", log.getEvent());
+            result.add(logUpdate);
         }
         return result;
     }

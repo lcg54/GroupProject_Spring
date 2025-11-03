@@ -12,16 +12,17 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "product_log")
 public class ProductLog {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long productId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
 
-    @Column(nullable = false)
-    private String productName;
-
-    @Column(nullable = false)
-    private String adminName; // 누가
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    private Member member;
 
     @Column(nullable = false)
     private LocalDateTime createdAt; // 언제

@@ -98,8 +98,7 @@ public class ProductService {
             String description,
             Integer price,
             Boolean available,
-            Integer totalStock,
-            String adminName
+            Integer totalStock
     ) throws IOException {
 
         if (uploadDir == null || uploadDir.isBlank()) {
@@ -156,13 +155,10 @@ public class ProductService {
 
         productRepository.save(product);
 
-        String finalAdmin = (adminName != null && !adminName.isBlank()) ? adminName : "관리자";
-
         productLogRepository.save(
                 ProductLog.builder()
-                        .productId(product.getId())
-                        .productName(product.getName())
-                        .adminName(finalAdmin)
+                        .product(product)
+                        .member()
                         .event("CREATE")
                         .build()
         );
@@ -185,8 +181,7 @@ public class ProductService {
             Integer shippingStock,
             Integer rentedStock,
             Integer repairStock,
-            List<String> existingImages,
-            String adminName
+            List<String> existingImages
     ) throws IOException {
 
         Product product = productRepository.findById(id)
@@ -251,29 +246,24 @@ public class ProductService {
 
         productRepository.save(product);
 
-        String finalAdmin = (adminName != null && !adminName.isBlank()) ? adminName : "관리자";
-        productLogRepository.save(
+        productLogRepository.saveAndFlush(
                 ProductLog.builder()
-                        .productId(product.getId())
-                        .productName(product.getName())
-                        .adminName(finalAdmin)
+                        .product(product)
+                        .member()
                         .event("UPDATE")
                         .build()
         );
     }
 
     // 상품 삭제
-    public void deleteProduct(Long id, String adminName) {
+    public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상품입니다."));
 
-        String finalAdmin = (adminName != null && !adminName.isBlank()) ? adminName : "관리자";
-
         productLogRepository.save(
                 ProductLog.builder()
-                        .productId(product.getId())
-                        .productName(product.getName())
-                        .adminName(finalAdmin)
+                        .product(product)
+                        .member()
                         .event("DELETE")
                         .build()
         );
