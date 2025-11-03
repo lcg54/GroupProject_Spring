@@ -155,13 +155,13 @@ public class ProductService {
 
         productRepository.save(product);
 
-        productLogRepository.save(
-                ProductLog.builder()
-                        .product(product)
-                        .member()
-                        .event("CREATE")
-                        .build()
-        );
+//        productLogRepository.save(
+//                ProductLog.builder()
+//                        .product(product)
+//                        .member()
+//                        .event("CREATE")
+//                        .build()
+//        );
 
         return convertToResponse(product);
     }
@@ -246,13 +246,13 @@ public class ProductService {
 
         productRepository.save(product);
 
-        productLogRepository.saveAndFlush(
-                ProductLog.builder()
-                        .product(product)
-                        .member()
-                        .event("UPDATE")
-                        .build()
-        );
+//        productLogRepository.saveAndFlush(
+//                ProductLog.builder()
+//                        .product(product)
+//                        .member()
+//                        .event("UPDATE")
+//                        .build()
+//        );
     }
 
     // 상품 삭제
@@ -260,13 +260,13 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상품입니다."));
 
-        productLogRepository.save(
-                ProductLog.builder()
-                        .product(product)
-                        .member()
-                        .event("DELETE")
-                        .build()
-        );
+//        productLogRepository.save(
+//                ProductLog.builder()
+//                        .product(product)
+//                        .member()
+//                        .event("DELETE")
+//                        .build()
+//        );
 
         productRepository.delete(product);
     }
