@@ -99,5 +99,10 @@ public class RentalController {
         return ResponseEntity.ok(result);
     }
 
-    record ErrorResponse(String message) {}
+    // 회원별 리뷰를 쓰지 않은 대여 내역 조회
+    @GetMapping("/member/{memberId}/unreviewed")
+    public ResponseEntity<List<RentalResponse>> getUnreviewedRentals(@PathVariable Long memberId) {
+        List<RentalResponse> rentals = rentalService.getUnreviewedRentalsByMemberId(memberId);
+        return ResponseEntity.ok(rentals);
+    }
 }

@@ -14,6 +14,7 @@ public class InquiryResponse {
     private Long id;
     private String title;
     private String content;
+    private Long productId;
     private Long memberId;
     private String member; // 작성자 이름
     private InquiryType type;

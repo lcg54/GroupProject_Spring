@@ -282,4 +282,43 @@ public class RentalService {
 
         return "반납 요청이 접수되었습니다.";
     }
+
+    // 리뷰를 쓰지 않은 대여 내역 조회
+    @Transactional(readOnly = true)
+    public List<RentalResponse> getUnreviewedRentalsByMemberId(Long memberId) {
+        List<Rental> rentals = rentalRepository.findRentalsByMemberId(memberId);
+
+        List<RentalResponse> responses = rentals.stream()
+                .map(rental -> {
+                    List<RentalResponse.RentalItemResponse> unreviewedItems = rental.getItems().stream()
+                            .filter(item -> item.getReview() == null)  // 리뷰 없는 항목만
+                            .map(item -> new RentalResponse.RentalItemResponse(
+                                    item.getId(),
+                                    item.getProduct().getId(),
+                                    item.getProduct().getName(),
+                                    item.getQuantity(),
+                                    item.getPricePerUnit(),
+                                    item.getRentalPeriodYears(),
+                                    item.getRentalStart(),
+                                    item.getRentalEnd(),
+                                    item.getPricePerUnit() * 12 * item.getRentalPeriodYears() * item.getQuantity(),
+                                    item.getStatus(),
+                                    item.getProduct().getMainImage()
+                            ))
+                            .toList();
+
+                    if (unreviewedItems.isEmpty()) return null; // 리뷰 없는 항목 없으면 제외
+
+                    return new RentalResponse(
+                            rental.getId(),
+                            rental.getCreatedAt(),
+                            rental.getTotalPrice(),
+                            unreviewedItems
+                    );
+                })
+                .filter(r -> r != null)
+                .toList();
+
+        return responses;
+    }
 }

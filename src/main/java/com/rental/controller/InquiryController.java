@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/product/{productId}/inquiry")
+@RequestMapping
 public class InquiryController {
     private final InquiryService inquiryService;
 
     // 상품별 문의글 조회
-    @GetMapping
-    public ResponseEntity<Page<InquiryResponse>> getInquiriesByProduct(
+    @GetMapping("/product/{productId}/inquiry")
+    public ResponseEntity<Page<InquiryResponse>> getProductInquiries(
             @PathVariable Long productId,
             @RequestParam(required = false) Long memberId,
             @RequestParam(defaultValue = "0") int page,
@@ -31,7 +31,7 @@ public class InquiryController {
     }
 
     // 문의글 생성
-    @PostMapping("/write")
+    @PostMapping("/product/{productId}/inquiry/write")
     public ResponseEntity<?> createInquiry(
             @PathVariable Long productId,
             @RequestBody InquiryRequest inquiryRequest
@@ -48,7 +48,7 @@ public class InquiryController {
     }
 
     // 관리자 답변 등록
-    @PostMapping("/{inquiryId}/comment")
+    @PostMapping("/product/{productId}/inquiry/{inquiryId}/comment")
     public ResponseEntity<?> createAdminComment(
             @PathVariable Long productId,
             @PathVariable Long inquiryId,
@@ -61,4 +61,16 @@ public class InquiryController {
         );
         return ResponseEntity.ok(saved);
     }
+
+    // 회원별 문의글 조회
+    @GetMapping("/member/{memberId}/inquiry")
+    public ResponseEntity<Page<InquiryResponse>> getMemberInquiries(
+            @PathVariable Long memberId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
+        Page<InquiryResponse> inquiries = inquiryService.getInquiriesByMemberId(memberId, page, size);
+        return ResponseEntity.ok(inquiries);
+    }
+
 }

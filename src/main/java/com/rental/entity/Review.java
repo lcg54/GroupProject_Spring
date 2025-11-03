@@ -31,6 +31,7 @@ public class Review {
     @JoinColumn(name = "rental_item_id", unique = true)
     private RentalItem rentalItem;
 
+    @Builder.Default // 이걸 붙여야 Builder로 만들어도 리스트 초기화가 됨
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewImage> images = new ArrayList<>();
 
@@ -47,8 +48,8 @@ public class Review {
 
     private LocalDateTime regDate;
 
-    @PrePersist
-    protected void onCreate() {
-        // this.regDate = LocalDateTime.now();
-    }
+//    @PrePersist
+//    protected void onCreate() {
+//        this.regDate = LocalDateTime.now();
+//    }
 }

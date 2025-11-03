@@ -68,6 +68,7 @@ public class InquiryService {
                 .id(inquiry.getId())
                 .title(inquiry.getTitle())
                 .content(inquiry.getContent())
+                .productId(inquiry.getProduct().getId())
                 .memberId(inquiry.getMember().getId())
                 .member(inquiry.getMember().getName())
                 .type(inquiry.getType())
@@ -86,7 +87,7 @@ public class InquiryService {
         if (comment == null) return null;
         if (hide) {
             return InquiryCommentResponse.builder()
-                    .admin(comment.getAdmin().getName()) // 관리자 이름은 그대로 보여줌
+                    .admin(comment.getAdmin().getName())
                     .comment(secretMessage)
                     .createdAt(comment.getCreatedAt())
                     .build();
@@ -147,4 +148,13 @@ public class InquiryService {
                 .createdAt(saved.getCreatedAt())
                 .build();
     }
+
+    // 회원별 문의글 조회
+    public Page<InquiryResponse> getInquiriesByMemberId(Long memberId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Inquiry> inquiryPage = inquiryRepository.findByMemberId(memberId, pageable);
+
+        return inquiryPage.map(this::convertToDto);
+    }
+
 }
