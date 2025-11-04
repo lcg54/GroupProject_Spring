@@ -31,21 +31,30 @@ public class RentalService {
     private final MemberRepository memberRepository;
     private final PriceCalculator priceCalculator;
 
-    // 대여 생성
+    // 대여 생성 (createdAt 자동 설정)
     @Transactional
     public Rental createRental(RentalRequest request) {
+        return createRentalWithDate(request, null);
+    }
+
+    // 대여 생성 (createdAt 수동 설정 - 테스트용)
+    @Transactional
+    public Rental createRentalWithDate(RentalRequest request, LocalDateTime createdAt) {
         Member member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
         Rental rental = new Rental();
         rental.setMember(member);
+
+        // createdAt이 제공되면 사용, 아니면 현재 시간
+        if (createdAt != null) {
+            rental.setCreatedAt(createdAt);
+        }
+
         rentalRepository.save(rental);
 
         int totalPrice = 0;
         List<RentalItem> items = new ArrayList<>();
-
-        LocalDate today = LocalDate.now();
-        LocalDate sixYearsAgo = today.minusYears(6);
 
         for (RentalRequest.RentalItemRequest itemReq : request.getItems()) {
             Product product = productRepository.findById(itemReq.getProductId())
@@ -55,8 +64,9 @@ public class RentalService {
                 throw new IllegalArgumentException("상품 재고가 부족합니다: " + product.getName());
             }
 
-            int monthlyPrice = priceCalculator.calculateMonthlyPrice(product.getPrice(), itemReq.getPeriodYears());
-            int itemTotal = priceCalculator.calculateTotalPrice(monthlyPrice, itemReq.getPeriodYears(), itemReq.getQuantity());
+            // 대여료 계산 로직 (임시)
+            int monthlyPrice = product.getPrice() / (itemReq.getPeriodYears() * 20) - 5100;
+            int itemTotal = monthlyPrice * 12 * itemReq.getPeriodYears() * itemReq.getQuantity();
 
             RentalItem item = new RentalItem();
             item.setRental(rental);
@@ -67,16 +77,17 @@ public class RentalService {
             item.setRentalStart(itemReq.getRentalStart());
             item.setRentalEnd(itemReq.getRentalStart().plusYears(itemReq.getPeriodYears()));
 
-            LocalDate startDate = item.getRentalStart();
+            LocalDate today = LocalDate.now();
             int qty = itemReq.getQuantity();
-
-            // 테스트 데이터 주입용 대여상태 분기
-            if (startDate.isBefore(sixYearsAgo)) { // 6년 이상 지난 주문 → 반납 완료 (샘플)
+            LocalDate startDate = item.getRentalStart();
+            LocalDate sixYearsAgo = today.minusYears(6);
+            // 테스트 데이터 주입용 분기. 주입 이후로는 else만 동작
+            if (startDate.isBefore(sixYearsAgo)) { // 6년 이상 지난 주문은 반납 완료 처리
                 item.setStatus(RentalStatus.RETURNED);
-            } else if (startDate.isBefore(today)) { // 오늘 이전 → 대여중 (샘플)
+            } else if (startDate.isBefore(today)) { // 오늘 이전이면 대여중 처리
                 item.setStatus(RentalStatus.RENTED);
                 product.setRentedStock(product.getRentedStock() + qty);
-            } else { // 오늘 또는 이후 → 예약중 (실제 주문)
+            } else { // 오늘 이후면 예약중 처리
                 item.setStatus(RentalStatus.RESERVED);
                 product.setReservedStock(product.getReservedStock() + qty);
             }
@@ -86,27 +97,8 @@ public class RentalService {
             items.add(item);
             totalPrice += itemTotal;
         }
-
         rental.setItems(items);
         rental.setTotalPrice(totalPrice);
-
-        // 전체 아이템 중 가장 빠른 rentalStart를 기준으로 주문 생성일 결정
-        LocalDate earliestStart = items.stream()
-                .map(RentalItem::getRentalStart)
-                .min(LocalDate::compareTo)
-                .orElse(LocalDate.now());
-
-        LocalDateTime createdAt;
-
-        // 테스트 데이터 주입용 주문생성일 분기
-        if (earliestStart.isBefore(today)) { // 샘플 데이터
-            int daysBefore = 1 + (int) (Math.random() * 7); // 1~7일 전
-            createdAt = earliestStart.atStartOfDay().minusDays(daysBefore);
-        } else { // 실제 주문
-            createdAt = LocalDateTime.now();
-        }
-        rental.setCreatedAt(createdAt);
-
         rentalItemRepository.saveAll(items);
         return rentalRepository.save(rental);
     }

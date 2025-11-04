@@ -41,11 +41,11 @@ public class MemberTest {
         admin.setPhone("010-9999-0000");
         admin.setAddress("서울특별시 마포구 홍익로 10");
         admin.setRole(Role.ADMIN);
-        admin.setProfileImage("admin_profile.jpg");
+        admin.setProfileImage("nullImage.png");
         list.add(admin);
 
         // 일반 회원
-        int userCount = 700; // 회원수
+        int userCount = 300; // 회원수
         for (int i = 1; i <= userCount; i++) {
             Member user = new Member();
             user.setUsername("user" + String.format("%03d", i));
@@ -55,7 +55,7 @@ public class MemberTest {
             user.setPhone("010-" + (1000 + i) + "-" + (2000 + i));
             user.setAddress(getRandomAddress());
             user.setRole(Role.USER);
-            user.setProfileImage("user_profile_" + i  + ".jpg"); // 5종류 프로필
+            user.setProfileImage("nullImage.png");
             list.add(user);
         }
 

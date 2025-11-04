@@ -12,12 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 @SpringBootTest
 public class RentalTest {
+
     @Autowired
     private RentalService rentalService;
     @Autowired
@@ -29,20 +32,26 @@ public class RentalTest {
 
     @Test
     void insertSampleRentals() {
-        List<Member> members = memberRepository.findAllByIdBetween(2L, 701L); // 일반회원 전체
+        List<Member> members = memberRepository.findAllByIdBetween(2L, 301L); // 일반회원 전체
         List<Product> products = productRepository.findAll();
 
         LocalDate today = LocalDate.now();
-        int created = 0;
+        int successCount = 0;
+        int skippedOrders = 0;
+        int skippedItems = 0;
 
         for (Member member : members) {
-            int orderCount = 1 + random.nextInt(4); // 1~4건 주문
+            int orderCount = random.nextInt(6); // 0~5건 주문 (랜덤)
+
             for (int i = 0; i < orderCount; i++) {
                 RentalRequest request = new RentalRequest();
                 request.setMemberId(member.getId());
 
-                int itemCount = 1 + random.nextInt(3); // 주문당 1~3상품
+                int itemCount = 1 + random.nextInt(4); // 주문당 1~4상품 (랜덤)
                 List<RentalItemRequest> items = new ArrayList<>();
+
+                // 주문일(createdAt)을 랜덤하게 설정
+                LocalDateTime orderDate = null;
 
                 for (int j = 0; j < itemCount; j++) {
                     Product product = products.get(random.nextInt(products.size()));
@@ -50,36 +59,73 @@ public class RentalTest {
                     // 재고 초과 방지 로직
                     int availableStock = product.getAvailableStock();
                     if (availableStock <= 0) {
+                        skippedItems++;
                         continue; // 대여 가능 재고 없음 → 건너뛰기
                     }
-                    int maxQty = Math.min(availableStock, 2); // 상품당 1~2개, 단 재고 초과하지 않게
+
+                    int maxQty = Math.min(availableStock, 3); // 상품당 최대 3개, 단 재고 초과하지 않게
                     int quantity = 1 + random.nextInt(maxQty); // 1~maxQty 범위 내에서만 주문
 
                     RentalItemRequest itemReq = new RentalItemRequest();
                     itemReq.setProductId(product.getId());
                     itemReq.setQuantity(quantity);
 
-                    boolean isOldData = random.nextBoolean(); // 50% 확률
-                    if (isOldData) {
+                    // 날짜 랜덤 분배: 과거 데이터 30%, 최근 데이터 70%
+                    int dateType = random.nextInt(10);
+                    LocalDate rentalStartDate;
+
+                    if (dateType < 3) { // 30% - 6~9년 전 데이터 (반납 완료)
                         int yearsAgo = 6 + random.nextInt(4); // 6~9년 전
-                        itemReq.setRentalStart(today.minusYears(yearsAgo)
-                                .minusDays(random.nextInt(365))); // 세부 날짜 랜덤
+                        int daysOffset = random.nextInt(365); // 해당 연도 내 랜덤 날짜
+                        rentalStartDate = today.minusYears(yearsAgo).minusDays(daysOffset);
                         itemReq.setPeriodYears(3 + random.nextInt(4)); // 3~6년
-                    } else {
-                        itemReq.setRentalStart(today.minusDays(random.nextInt(1000))); // 최근 1000일 이내
-                        itemReq.setPeriodYears(3 + random.nextInt(4)); // 3~6년
+
+                    } else { // 70% - 최근 3년 이내 데이터
+                        int daysAgo = random.nextInt(1095); // 0~1095일 전 (약 3년)
+                        rentalStartDate = today.minusDays(daysAgo);
+
+                        // 대여 기간도 랜덤하게
+                        int[] periods = {3, 4, 5, 6};
+                        itemReq.setPeriodYears(periods[random.nextInt(periods.length)]);
                     }
-                    created++;
+
+                    itemReq.setRentalStart(rentalStartDate);
+
+                    // 주문일(createdAt)은 대여 시작일과 비슷하거나 조금 이전으로 설정
+                    // 첫 번째 아이템에서 결정된 주문일을 모든 아이템이 공유
+                    if (orderDate == null) {
+                        int daysBefore = random.nextInt(30); // 대여 시작일 0~30일 전에 주문
+                        LocalDate orderLocalDate = rentalStartDate.minusDays(daysBefore);
+
+                        // 랜덤한 시간 추가 (00:00:00 ~ 23:59:59)
+                        int hour = random.nextInt(24);
+                        int minute = random.nextInt(60);
+                        int second = random.nextInt(60);
+                        orderDate = LocalDateTime.of(orderLocalDate, LocalTime.of(hour, minute, second));
+                    }
+
                     items.add(itemReq);
                 }
 
                 if (!items.isEmpty()) { // 주문할 아이템이 남아 있을 때만 생성
                     request.setItems(items);
-                    rentalService.createRental(request);
+                    try {
+                        // createRentalWithDate 메서드 사용 (주문일 지정)
+                        rentalService.createRentalWithDate(request, orderDate);
+                        successCount++;
+                    } catch (Exception e) {
+                        skippedOrders++;
+                        System.err.println("주문 생성 실패: " + e.getMessage());
+                    }
+                } else {
+                    skippedOrders++;
                 }
             }
         }
 
-        System.out.println("✅ 샘플 렌탈 " + created + "건 생성 완료");
+        System.out.println("========== 랜덤 렌탈 생성 완료 ==========");
+        System.out.println("✅ 성공한 주문 수: " + successCount);
+        System.out.println("⚠️ 재고 부족으로 건너뛴 상품: " + skippedItems);
+        System.out.println("❌ 생성 실패한 주문: " + skippedOrders);
     }
 }

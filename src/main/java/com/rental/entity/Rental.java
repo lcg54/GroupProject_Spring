@@ -32,4 +32,12 @@ public class Rental {
     private LocalDateTime createdAt; // 주문 생성일
 
     private int totalPrice; // 전체 합계 금액 (모든 rentalItem 합산)
+
+    @PrePersist
+    protected void onCreate() {
+        // createdAt이 null일 때만 현재 시간으로 설정
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+    }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -21,4 +22,6 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
             "WHERE m.id = :memberId " +
             "ORDER BY r.createdAt DESC")
     List<Rental> findRentalsByMemberId(@Param("memberId") Long memberId);
+
+    List<Rental> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

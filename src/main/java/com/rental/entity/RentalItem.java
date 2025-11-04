@@ -44,5 +44,5 @@ public class RentalItem {
     @Enumerated(EnumType.STRING)
     private RentalStatus status; // 대여 상태
 
-    // private LocalDate serviceDate; // 서비스 출장일
+    private LocalDate serviceDate; // 서비스 출장일
 }
