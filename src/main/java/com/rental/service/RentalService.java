@@ -182,7 +182,7 @@ public class RentalService {
                         item.getRentalPeriodYears(),
                         item.getRentalStart(),
                         item.getRentalEnd(),
-                        item.getPricePerUnit() * 12 * item.getRentalPeriodYears() * item.getQuantity(),
+                        priceCalculator.calculateTotalPrice(item.getPricePerUnit(), item.getRentalPeriodYears(), item.getQuantity()),
                         item.getStatus(),
                         item.getProduct().getMainImage()
                 )).toList();
@@ -203,7 +203,7 @@ public class RentalService {
                         item.getRentalPeriodYears(),
                         item.getRentalStart(),
                         item.getRentalEnd(),
-                        item.getPricePerUnit() * 12 * item.getRentalPeriodYears() * item.getQuantity(),
+                        priceCalculator.calculateTotalPrice(item.getPricePerUnit(), item.getRentalPeriodYears(), item.getQuantity()),
                         item.getStatus(),
                         item.getProduct().getMainImage()
                 )).toList();
@@ -301,7 +301,7 @@ public class RentalService {
                                     item.getRentalPeriodYears(),
                                     item.getRentalStart(),
                                     item.getRentalEnd(),
-                                    item.getPricePerUnit() * 12 * item.getRentalPeriodYears() * item.getQuantity(),
+                                    priceCalculator.calculateTotalPrice(item.getPricePerUnit(), item.getRentalPeriodYears(), item.getQuantity()),
                                     item.getStatus(),
                                     item.getProduct().getMainImage()
                             ))

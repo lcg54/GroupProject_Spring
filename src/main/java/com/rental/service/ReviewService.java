@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final RentalItemRepository rentalItemRepository;
-    private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
     private final ReviewRecommendRepository reviewRecommendRepository;
 
@@ -206,6 +205,7 @@ public class ReviewService {
         review.setTitle(title);
         review.setContent(content);
 
+        // 기존 이미지 교체
         review.getImages().clear();
         if (imageFileNames != null && !imageFileNames.isEmpty()) {
             for (int i = 0; i < imageFileNames.size(); i++) {
@@ -218,6 +218,22 @@ public class ReviewService {
             }
         }
 
+        if (review.getRentalItem() != null) {
+            RentalItem item = review.getRentalItem();
+            if (item.getProduct() == null) {
+                item.setProduct(review.getProduct());
+            }
+        }
         return reviewRepository.save(review);
+    }
+
+    // 리뷰 단건 조회
+    public Optional<Review> findById(Long reviewId) {
+        return reviewRepository.findById(reviewId);
+    }
+
+    // 특정 회원이 특정 상품에 대해 이미 작성한 리뷰 조회
+    public Optional<Review> findByMemberAndProduct(Long memberId, Long productId) {
+        return reviewRepository.findByMemberIdAndProductId(memberId, productId);
     }
 }

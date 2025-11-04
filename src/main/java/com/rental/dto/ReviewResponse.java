@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 public class ReviewResponse {
     private Long id;
     private Long productId;
-    private String memberName;
     private String productName;
+    private String memberName;
     private String title;
     private String content;
     private double rating;
@@ -24,13 +24,17 @@ public class ReviewResponse {
     private boolean recommended;
     private String regDate;
     private List<String> imageUrls;
+    private Long rentalItemId;
+    private Integer rentalPeriodYears;
+    private String brand;
+    private String mainImage;
 
     public static ReviewResponse from(Review review, boolean recommended) {
         return ReviewResponse.builder()
                 .id(review.getId())
                 .productId(review.getProduct() != null ? review.getProduct().getId() : null)
-                .memberName(review.getMember() != null ? review.getMember().getName() : "탈퇴한 회원")
                 .productName(review.getProduct() != null ? review.getProduct().getName() : null)
+                .memberName(review.getMember() != null ? review.getMember().getName() : "탈퇴한 회원")
                 .title(review.getTitle())
                 .content(review.getContent())
                 .rating(review.getRating())
@@ -42,6 +46,11 @@ public class ReviewResponse {
                         .map(ReviewImage::getFileName)
                         .collect(Collectors.toList())
                         : null)
+                .rentalItemId(review.getRentalItem() != null ? review.getRentalItem().getId() : null)
+                .rentalPeriodYears(review.getRentalItem() != null ? review.getRentalItem().getRentalPeriodYears() : null)
+                .brand(review.getProduct() != null && review.getProduct().getBrand() != null
+                        ? review.getProduct().getBrand().name() : null)
+                .mainImage(review.getProduct() != null ? review.getProduct().getMainImage() : null)
                 .build();
     }
 }
