@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -44,5 +45,7 @@ public class RentalItem {
     @Enumerated(EnumType.STRING)
     private RentalStatus status; // 대여 상태
 
-    private LocalDate serviceDate; // 서비스 출장일
+    // ServiceDate와 1:N 관계를 설정
+    @OneToMany(mappedBy = "rentalItem", fetch = FetchType.LAZY)
+    private List<ServiceDate> serviceDates;  // ServiceDate와 1:N 관계
 }

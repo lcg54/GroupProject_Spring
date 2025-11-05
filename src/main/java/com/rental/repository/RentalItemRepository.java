@@ -9,9 +9,11 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RentalItemRepository extends JpaRepository<RentalItem, Long> {
+
     Page<RentalItem> findByStatus(RentalStatus status, Pageable pageable);
 
     long countByStatus(RentalStatus status);
