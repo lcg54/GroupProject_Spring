@@ -2,9 +2,9 @@ package com.rental.test;
 
 import com.rental.constant.Brand;
 import com.rental.constant.Category;
-import com.rental.entity.Product;
-import com.rental.entity.ProductImage;
-import com.rental.repository.ProductRepository;
+import com.rental.product.Product;
+import com.rental.product.ProductImage;
+import com.rental.product.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

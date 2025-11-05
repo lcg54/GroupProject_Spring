@@ -2,6 +2,8 @@ package com.rental.constant;
 
 // 고객이 선택한 상품의 대여 상태
 public enum RentalStatus {
+    READY,       // 결제 대기
+    PAID,        // 결제 완료
     RESERVED,    // 예약 중
     SHIPPING,    // 배송 중
     RENTED,      // 대여 중

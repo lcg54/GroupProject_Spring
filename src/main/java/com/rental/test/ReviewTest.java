@@ -1,7 +1,14 @@
 package com.rental.test;
 
-import com.rental.entity.*;
-import com.rental.repository.*;
+import com.rental.member.Member;
+import com.rental.member.MemberRepository;
+import com.rental.product.Product;
+import com.rental.product.ProductRepository;
+import com.rental.rental.RentalItem;
+import com.rental.rental.RentalItemRepository;
+import com.rental.review.Review;
+import com.rental.review.ReviewImage;
+import com.rental.review.ReviewRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
