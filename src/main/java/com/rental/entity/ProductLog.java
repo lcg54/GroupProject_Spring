@@ -16,11 +16,13 @@ public class ProductLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "product_name", nullable = false, length = 255)
+    private String productName;
+
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "admin_id")
     private Member member;
 

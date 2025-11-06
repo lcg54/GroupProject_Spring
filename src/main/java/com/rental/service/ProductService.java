@@ -3,15 +3,14 @@ package com.rental.service;
 import com.rental.constant.Brand;
 import com.rental.constant.Category;
 import com.rental.dto.ProductResponse;
-import com.rental.entity.Product;
-import com.rental.entity.ProductImage;
-import com.rental.entity.ProductLog;
-import com.rental.entity.Review;
+import com.rental.entity.*;
+import com.rental.repository.MemberRepository;
 import com.rental.repository.ProductLogRepository;
 import com.rental.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductLogRepository productLogRepository;
-
+    private final MemberRepository memberRepository;
     @Value("${productImageLocation}")
     private String uploadDir;
 
@@ -155,13 +155,16 @@ public class ProductService {
 
         productRepository.save(product);
 
-//        productLogRepository.save(
-//                ProductLog.builder()
-//                        .product(product)
-//                        .member()
-//                        .event("CREATE")
-//                        .build()
-//        );
+        Member admin = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+        productLogRepository.save(
+                ProductLog.builder()
+                        .productId(product.getId())
+                        .productName(product.getName())
+                        .member(admin)
+                        .event("CREATE")
+                        .createdAt(LocalDateTime.now())
+                        .build()
+        );
 
         return convertToResponse(product);
     }
@@ -246,27 +249,35 @@ public class ProductService {
 
         productRepository.save(product);
 
-//        productLogRepository.saveAndFlush(
-//                ProductLog.builder()
-//                        .product(product)
-//                        .member()
-//                        .event("UPDATE")
-//                        .build()
-//        );
+        Member admin = memberRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+        productLogRepository.saveAndFlush(
+                ProductLog.builder()
+                        .productId(product.getId())
+                        .productName(product.getName())
+                        .member(admin)
+                        .event("UPDATE")
+                        .createdAt(LocalDateTime.now())
+                        .build()
+        );
     }
 
     // 상품 삭제
+    @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상품입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + id));
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Member admin = memberRepository.findByEmail(email);
 
-//        productLogRepository.save(
-//                ProductLog.builder()
-//                        .product(product)
-//                        .member()
-//                        .event("DELETE")
-//                        .build()
-//        );
+        productLogRepository.save(
+                ProductLog.builder()
+                        .productId(product.getId())
+                        .productName(product.getName())
+                        .member(admin)
+                        .event("DELETE")
+                        .createdAt(LocalDateTime.now())
+                        .build()
+        );
 
         productRepository.delete(product);
     }
