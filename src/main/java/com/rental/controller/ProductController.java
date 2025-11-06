@@ -10,6 +10,7 @@ import com.rental.entity.ProductLog;
 import com.rental.repository.ProductLogRepository;
 import com.rental.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -129,9 +130,14 @@ public class ProductController {
         try{
             productService.deleteProduct(id);
             return ResponseEntity.ok(java.util.Map.of("message", "상품 삭제 완료"));
-        } catch (Exception e){
+        } catch (IllegalStateException e) {
+            // 주문/대여 내역 때문에 우리가 직접 막은 경우
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(java.util.Map.of("message", "상품 삭제 실패" + e.getMessage()));
+                    .body(java.util.Map.of("message", e.getMessage()));  // "주문이 들어온 상품은 삭제 할 수 없습니다."
+        } catch (Exception e) {
+            // 그 외 예외는 디버깅용 / 일반적인 오류
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(java.util.Map.of("message", "상품 삭제 중 오류가 발생했습니다."));
         }
     }
 

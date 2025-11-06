@@ -7,6 +7,7 @@ import com.rental.entity.*;
 import com.rental.repository.MemberRepository;
 import com.rental.repository.ProductLogRepository;
 import com.rental.repository.ProductRepository;
+import com.rental.repository.RentalItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
@@ -29,6 +30,8 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductLogRepository productLogRepository;
     private final MemberRepository memberRepository;
+    private final RentalItemRepository rentalItemRepository;
+
     @Value("${productImageLocation}")
     private String uploadDir;
 
@@ -266,6 +269,12 @@ public class ProductService {
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + id));
+
+        boolean inUse = rentalItemRepository.existsByProduct(product);
+        if (inUse) {
+            throw new IllegalStateException("주문이 들어온 상품은 삭제 할 수 없습니다.");
+        }
+            //  사용 중이 아니면 실제 삭제
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Member admin = memberRepository.findByEmail(email);
 

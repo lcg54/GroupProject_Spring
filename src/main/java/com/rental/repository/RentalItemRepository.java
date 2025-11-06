@@ -1,6 +1,7 @@
 package com.rental.repository;
 
 import com.rental.constant.RentalStatus;
+import com.rental.entity.Product;
 import com.rental.entity.RentalItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,4 +18,6 @@ public interface RentalItemRepository extends JpaRepository<RentalItem, Long> {
     long countByStatus(RentalStatus status);
 
     List<RentalItem> findByRentalStartBetween(LocalDate startDate, LocalDate endDate);
+
+    boolean existsByProduct(Product product);
 }
