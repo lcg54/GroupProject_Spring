@@ -24,7 +24,7 @@ public class RentalService {
     private final RentalItemRepository rentalItemRepository;
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
-    private final PriceCalculator priceCalculator;
+    private final PriceCalculator calculator;
 
     // 대여 생성 (createdAt 자동 설정)
     @Transactional
@@ -59,15 +59,15 @@ public class RentalService {
                 throw new IllegalArgumentException("상품 재고가 부족합니다: " + product.getName());
             }
 
-            // 대여료 계산 로직 (임시)
-            int monthlyPrice = product.getPrice() / (itemReq.getPeriodYears() * 20) - 5100;
-            int itemTotal = monthlyPrice * 12 * itemReq.getPeriodYears() * itemReq.getQuantity();
+            // 대여료 계산
+            int monthlyPrice = calculator.calculateMonthlyPrice(product.getPrice(), itemReq.getPeriodYears());
+            int itemTotal = calculator.calculateTotalPrice(monthlyPrice, itemReq.getPeriodYears(), itemReq.getQuantity());
 
             RentalItem item = new RentalItem();
             item.setRental(rental);
             item.setProduct(product);
             item.setQuantity(itemReq.getQuantity());
-            item.setPricePerUnit(monthlyPrice);
+            item.setMonthlyPrice(monthlyPrice);
             item.setRentalPeriodYears(itemReq.getPeriodYears());
             item.setRentalStart(itemReq.getRentalStart());
             item.setRentalEnd(itemReq.getRentalStart().plusYears(itemReq.getPeriodYears()));
@@ -165,11 +165,11 @@ public class RentalService {
                         item.getProduct().getId(),
                         item.getProduct().getName(),
                         item.getQuantity(),
-                        item.getPricePerUnit(),
+                        item.getMonthlyPrice(),
                         item.getRentalPeriodYears(),
                         item.getRentalStart(),
                         item.getRentalEnd(),
-                        priceCalculator.calculateTotalPrice(item.getPricePerUnit(), item.getRentalPeriodYears(), item.getQuantity()),
+                        calculator.calculateTotalPrice(item.getMonthlyPrice(), item.getRentalPeriodYears(), item.getQuantity()),
                         item.getStatus(),
                         item.getProduct().getMainImage()
                 )).toList();
@@ -186,11 +186,11 @@ public class RentalService {
                         item.getProduct().getId(),
                         item.getProduct().getName(),
                         item.getQuantity(),
-                        item.getPricePerUnit(),
+                        item.getMonthlyPrice(),
                         item.getRentalPeriodYears(),
                         item.getRentalStart(),
                         item.getRentalEnd(),
-                        priceCalculator.calculateTotalPrice(item.getPricePerUnit(), item.getRentalPeriodYears(), item.getQuantity()),
+                        calculator.calculateTotalPrice(item.getMonthlyPrice(), item.getRentalPeriodYears(), item.getQuantity()),
                         item.getStatus(),
                         item.getProduct().getMainImage()
                 )).toList();
@@ -284,11 +284,11 @@ public class RentalService {
                                     item.getProduct().getId(),
                                     item.getProduct().getName(),
                                     item.getQuantity(),
-                                    item.getPricePerUnit(),
+                                    item.getMonthlyPrice(),
                                     item.getRentalPeriodYears(),
                                     item.getRentalStart(),
                                     item.getRentalEnd(),
-                                    priceCalculator.calculateTotalPrice(item.getPricePerUnit(), item.getRentalPeriodYears(), item.getQuantity()),
+                                    calculator.calculateTotalPrice(item.getMonthlyPrice(), item.getRentalPeriodYears(), item.getQuantity()),
                                     item.getStatus(),
                                     item.getProduct().getMainImage()
                             ))

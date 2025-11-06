@@ -37,7 +37,7 @@ public class RentalItem {
     @Column(nullable = false)
     private int quantity; // 수량
 
-    private int pricePerUnit; // 상품별 고정 월 단가 (구매시점에 고정되어 상품가격이 수정되어도 바뀌지 않도록 따로 설정)
+    private int monthlyPrice; // 상품별 고정 월 단가 (구매시점에 고정되어 상품가격이 수정되어도 바뀌지 않도록 따로 설정)
 
     private int rentalPeriodYears; // 대여 기간 (3,4,5,6년)
     private LocalDate rentalStart; // 대여 시작일

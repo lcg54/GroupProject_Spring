@@ -61,7 +61,7 @@ public class PaymentService {
             item.setRental(rental);
             item.setProduct(product);
             item.setQuantity(itemReq.getQuantity());
-            item.setPricePerUnit(calculator.calculateMonthlyPrice(product.getPrice(), itemReq.getPeriodYears()));
+            item.setMonthlyPrice(calculator.calculateMonthlyPrice(product.getPrice(), itemReq.getPeriodYears()));
             item.setRentalPeriodYears(itemReq.getPeriodYears());
             item.setStatus(RentalStatus.READY);
             rentalItemRepository.save(item);
