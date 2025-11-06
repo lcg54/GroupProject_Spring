@@ -1,7 +1,6 @@
 package com.rental.rental;
 
 import com.rental.constant.RentalStatus;
-import com.rental.review.RentalResponse;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

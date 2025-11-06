@@ -10,17 +10,15 @@ import java.util.List;
 
 @Repository
 public interface RentalRepository extends JpaRepository<Rental, Long> {
-    // 방법 1: 쿼리 메서드 (간단)
-    List<Rental> findByMemberIdOrderByCreatedAtDesc(Long memberId);
-
-    // 방법 2: @Query 사용 (명확한 조인, N+1 문제 방지)
-    @Query("SELECT r FROM Rental r " +
+    /**
+     * 회원의 Rental들을 member/items/product를 함께 fetch 하여 N+1 문제 방지.
+     * 필요에 따라 서비스에서 이 메서드를 사용하세요.
+     */
+    @Query("SELECT DISTINCT r FROM Rental r " +
             "LEFT JOIN FETCH r.member m " +
             "LEFT JOIN FETCH r.items i " +
-            "LEFT JOIN FETCH i.product " +
+            "LEFT JOIN FETCH i.product p " +
             "WHERE m.id = :memberId " +
             "ORDER BY r.createdAt DESC")
     List<Rental> findRentalsByMemberId(@Param("memberId") Long memberId);
-
-    List<Rental> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

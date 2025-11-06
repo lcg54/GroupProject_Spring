@@ -1,7 +1,7 @@
 package com.rental.cart;
 
 import com.rental.rental.RentalRequest;
-import com.rental.review.RentalResponse;
+import com.rental.rental.RentalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

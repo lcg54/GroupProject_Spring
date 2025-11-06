@@ -32,7 +32,6 @@ public class Member {
     @Column(unique = true, nullable = false)
     private String email;
 
-
     @Column(nullable = false)
     @Pattern(regexp = ".*[!@#$%].*", message = "비밀 번호는 특수 문자 '!@#$%' 중 하나 이상을 포함해야 합니다.")
     private String password;
@@ -55,5 +54,4 @@ public class Member {
         if (this.role == null) this.role = Role.USER;
         this.regDate = LocalDate.now();
     }
-
 }

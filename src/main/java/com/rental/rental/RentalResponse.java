@@ -1,4 +1,4 @@
-package com.rental.review;
+package com.rental.rental;
 
 import com.rental.constant.RentalStatus;
 import lombok.AllArgsConstructor;

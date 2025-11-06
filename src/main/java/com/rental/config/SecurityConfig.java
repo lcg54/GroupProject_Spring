@@ -35,14 +35,15 @@ public class SecurityConfig {
                         .maxSessionsPreventsLogin(false)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // 회원가입, 로그인은 모두 허용
-                        .requestMatchers("/api/members", "/api/members/login").permitAll()
+                        // 회원 관련 - 순서 중요!
+                        .requestMatchers("/api/members/check-session").permitAll()  // 먼저
+                        .requestMatchers("/api/members/login").permitAll()
                         .requestMatchers("/api/members/logout").permitAll()
-                        .requestMatchers("/api/members/check-session").permitAll()
+                        .requestMatchers("/api/members/**").permitAll()  // 나중
                         // 이미지 접근 허용
                         .requestMatchers("/images/**").permitAll()
                         // 나머지는 모두 허용 (개발 단계)
-                        .anyRequest().permitAll()
+                        .anyRequest().permitAll() // .anyRequest().authenticated() 나머지는 로그인 필요로 고쳐야 함
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/members/logout")

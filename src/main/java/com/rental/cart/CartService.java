@@ -5,7 +5,7 @@ import com.rental.product.Product;
 import com.rental.product.ProductRepository;
 import com.rental.rental.Rental;
 import com.rental.rental.RentalRequest;
-import com.rental.review.RentalResponse;
+import com.rental.rental.RentalResponse;
 import com.rental.rental.RentalService;
 import com.rental.util.PriceCalculator;
 import lombok.RequiredArgsConstructor;

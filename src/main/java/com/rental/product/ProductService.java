@@ -2,10 +2,13 @@ package com.rental.product;
 
 import com.rental.constant.Brand;
 import com.rental.constant.Category;
+import com.rental.member.Member;
+import com.rental.member.MemberRepository;
 import com.rental.review.Review;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductLogRepository productLogRepository;
+    private final MemberRepository memberRepository;
 
     @Value("${productImageLocation}")
     private String uploadDir;
@@ -149,13 +154,16 @@ public class ProductService {
 
         productRepository.save(product);
 
-//        productLogRepository.save(
-//                ProductLog.builder()
-//                        .product(product)
-//                        .member()
-//                        .event("CREATE")
-//                        .build()
-//        );
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Member admin = memberRepository.findByUsername(username);
+        productLogRepository.save(
+                ProductLog.builder()
+                        .product(product)
+                        .member(admin)
+                        .event("CREATE")
+                        .createdAt(LocalDateTime.now())
+                        .build()
+        );
 
         return convertToResponse(product);
     }
@@ -240,28 +248,34 @@ public class ProductService {
 
         productRepository.save(product);
 
-//        productLogRepository.saveAndFlush(
-//                ProductLog.builder()
-//                        .product(product)
-//                        .member()
-//                        .event("UPDATE")
-//                        .build()
-//        );
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Member admin = memberRepository.findByUsername(username);
+        productLogRepository.saveAndFlush(
+                ProductLog.builder()
+                        .product(product)
+                        .member(admin)
+                        .event("UPDATE")
+                        .createdAt(LocalDateTime.now())
+                        .build()
+        );
     }
 
     // 상품 삭제
+    @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 상품입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + id));
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Member admin = memberRepository.findByUsername(username);
 
-//        productLogRepository.save(
-//                ProductLog.builder()
-//                        .product(product)
-//                        .member()
-//                        .event("DELETE")
-//                        .build()
-//        );
-
+        productLogRepository.save(
+                ProductLog.builder()
+                        .product(product)
+                        .member(admin)
+                        .event("DELETE")
+                        .createdAt(LocalDateTime.now())
+                        .build()
+        );
         productRepository.delete(product);
     }
 }

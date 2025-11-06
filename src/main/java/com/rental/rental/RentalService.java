@@ -1,7 +1,6 @@
 package com.rental.rental;
 
 import com.rental.constant.RentalStatus;
-import com.rental.review.RentalResponse;
 import com.rental.member.Member;
 import com.rental.product.Product;
 import com.rental.member.MemberRepository;

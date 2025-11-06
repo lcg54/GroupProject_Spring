@@ -151,8 +151,17 @@ public class ProductController {
         List<Map<String, Object>> result = new ArrayList<>();
         for (ProductLog log : logs) {
             Map<String, Object> logUpdate = new HashMap<>();
+            logUpdate.put("productId", log.getProduct().getId());
             logUpdate.put("productName", log.getProduct().getName());
-            logUpdate.put("adminName", log.getMember().getName());
+            String adminName = "알 수 없음";
+            if (log.getMember() != null) {
+                try {
+                    adminName = log.getMember().getName();
+                } catch (Exception e) {
+                    adminName = "로딩 오류";
+                }
+            }
+            logUpdate.put("adminName", adminName);
             logUpdate.put("createdAt", log.getCreatedAt());
             logUpdate.put("event", log.getEvent());
             result.add(logUpdate);
