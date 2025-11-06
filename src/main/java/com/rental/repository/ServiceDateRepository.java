@@ -17,4 +17,7 @@ public interface ServiceDateRepository extends JpaRepository<ServiceDate, Long> 
 
     // 특정 렌탈 아이템과 서비스 날짜에 맞는 데이터를 조회
     Optional<ServiceDate> findByRentalItemAndServiceDate(RentalItem rentalItem, LocalDate serviceDate);
+    List<ServiceDate> findByRentalItem_RentalId(Long rentalId);
+
+    void deleteByRentalItem_IdAndServiceDate(Long rentalItemId, LocalDate serviceDate);
 }
