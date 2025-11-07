@@ -11,19 +11,16 @@ import com.rental.rental.RentalItem;
 import com.rental.rental.RentalItemRepository;
 import com.rental.rental.RentalRepository;
 import com.rental.util.PriceCalculator;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,5 +101,35 @@ public class PaymentService {
         }
 
         return new PaymentConfirmResponse("success", response.getBody());
+    }
+
+    // BillingKey 발급 요청
+    public String requestBillingKey(BillingRequest request) {
+        try {
+            String url = "https://api.tosspayments.com/v1/billing/authorizations/" + request.getAuthKey();
+
+            HttpHeaders headers = new HttpHeaders();
+            String encodedAuth = Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8));
+            headers.set("Authorization", "Basic " + encodedAuth);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, String> body = Map.of("customerKey", request.getCustomerKey());
+
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
+            RestTemplate restTemplate = new RestTemplate();
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    Map.class
+            );
+
+            return (String) response.getBody().get("billingKey");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("빌링키 발급 실패: " + e.getMessage());
+        }
     }
 }

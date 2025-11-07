@@ -14,6 +14,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
+    // 단건결제
     // (1) 결제 준비 - Toss 결제용 orderId/amount/고객명 반환
     @PostMapping("/ready")
     public ResponseEntity<PaymentReadyResponse> readyPayment(@RequestBody PaymentReadyRequest request) {
@@ -28,5 +29,13 @@ public class PaymentController {
         // username + items 정보 포함
         PaymentConfirmResponse response = paymentService.confirmPayment(request);
         return ResponseEntity.ok(response);
+    }
+
+    // 정기결제
+    // (1) BillingKey 발급 요청
+    @PostMapping("/billing")
+    public ResponseEntity<String> issueBillingKey(@RequestBody BillingRequest request) {
+        String billingKey = paymentService.requestBillingKey(request);
+        return ResponseEntity.ok(billingKey);
     }
 }
