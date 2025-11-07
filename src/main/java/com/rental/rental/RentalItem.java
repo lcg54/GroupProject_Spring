@@ -1,5 +1,6 @@
 package com.rental.rental;
 
+import com.rental.constant.PaymentStatus;
 import com.rental.constant.RentalStatus;
 import com.rental.product.Product;
 import com.rental.review.Review;
@@ -45,6 +46,9 @@ public class RentalItem {
 
     @Enumerated(EnumType.STRING)
     private RentalStatus status; // 대여 상태
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus; // 결제 상태
 
     private LocalDate serviceDate; // 서비스 출장일
 }

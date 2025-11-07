@@ -1,17 +1,20 @@
 package com.rental.payment;
 
+import com.rental.constant.PaymentStatus;
 import com.rental.constant.RentalStatus;
 import com.rental.member.Member;
+import com.rental.member.MemberRepository;
 import com.rental.product.Product;
+import com.rental.product.ProductRepository;
 import com.rental.rental.Rental;
 import com.rental.rental.RentalItem;
-import com.rental.member.MemberRepository;
-import com.rental.product.ProductRepository;
 import com.rental.rental.RentalItemRepository;
 import com.rental.rental.RentalRepository;
 import com.rental.util.PriceCalculator;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -37,40 +40,25 @@ public class PaymentService {
     @Value("${toss.secret-key}")
     private String secretKey;
 
-    // 1. 결제 준비 (주문 생성)
-    @Transactional
+    // 1. 결제 준비 - 결제 요청 시 Toss에 전달할 orderId, 금액, 사용자명, 아이템 정보만 응답
     public PaymentReadyResponse preparePayment(PaymentReadyRequest request, String username) {
         Member member = memberRepository.findByUsername(username);
         if (member == null) {
             throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
         }
 
-        // Rental 생성
-        Rental rental = new Rental();
-        rental.setMember(member);
-        rental.setCreatedAt(LocalDateTime.now());
-        rental.setTotalPrice(request.getTotalAmount());
-        rentalRepository.save(rental);
+        // 실제 DB에 저장하지 않고, Toss 결제용 임시 주문 ID 생성
+        String orderId = "order-" + System.currentTimeMillis();
 
-        // RentalItem 생성
-        for (PaymentReadyRequest.Item itemReq : request.getItems()) {
-            Product product = productRepository.findById(itemReq.getProductId())
-                    .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
-
-            RentalItem item = new RentalItem();
-            item.setRental(rental);
-            item.setProduct(product);
-            item.setQuantity(itemReq.getQuantity());
-            item.setMonthlyPrice(calculator.calculateMonthlyPrice(product.getPrice(), itemReq.getPeriodYears()));
-            item.setRentalPeriodYears(itemReq.getPeriodYears());
-            item.setStatus(RentalStatus.READY);
-            rentalItemRepository.save(item);
-        }
-
-        return new PaymentReadyResponse("order-" + rental.getId(), rental.getTotalPrice(), member.getName());
+        return new PaymentReadyResponse(
+                orderId,
+                request.getTotalAmount(),
+                member.getName(),
+                request.getItems()
+        );
     }
 
-    // 2. 결제 승인
+    // 2. 결제 승인 (결제 성공 후 Rental, RentalItem 생성)
     @Transactional
     public PaymentConfirmResponse confirmPayment(PaymentConfirmRequest request) {
         String url = "https://api.tosspayments.com/v1/payments/confirm";
@@ -88,13 +76,32 @@ public class PaymentService {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
-        // 승인 성공 시 DB 상태 업데이트
-        Long rentalId = Long.parseLong(request.getOrderId().replace("order-", ""));
-        Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new RuntimeException("주문 정보를 찾을 수 없습니다."));
+        // Rental 생성
+        Member member = memberRepository.findByUsername(request.getUsername());
+        if (member == null) throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
+
+        Rental rental = new Rental();
+        rental.setMember(member);
+        rental.setCreatedAt(LocalDateTime.now());
         rental.setTotalPrice(request.getAmount());
-        rental.getItems().forEach(i -> i.setStatus(RentalStatus.PAID));
         rentalRepository.save(rental);
+
+        // RentalItem 생성
+        for (PaymentConfirmRequest.Item itemReq : request.getItems()) {
+            Product product = productRepository.findById(itemReq.getProductId())
+                    .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
+
+            RentalItem item = new RentalItem();
+            item.setRental(rental);
+            item.setProduct(product);
+            item.setQuantity(itemReq.getQuantity());
+            item.setMonthlyPrice(calculator.calculateMonthlyPrice(product.getPrice(), itemReq.getPeriodYears()));
+            item.setRentalPeriodYears(itemReq.getPeriodYears());
+            item.setPaymentStatus(PaymentStatus.PAID);
+            item.setStatus(RentalStatus.RESERVED);
+
+            rentalItemRepository.save(item);
+        }
 
         return new PaymentConfirmResponse("success", response.getBody());
     }

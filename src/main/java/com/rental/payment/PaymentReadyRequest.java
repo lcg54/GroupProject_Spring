@@ -1,19 +1,16 @@
 package com.rental.payment;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 public class PaymentReadyRequest {
     private String username;
-    private List<Item> items;
     private int totalAmount;
+    private List<Item> items;
 
-    @Getter
-    @Setter
+    @Data
     public static class Item {
         private Long productId;
         private int quantity;
