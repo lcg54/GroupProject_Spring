@@ -37,7 +37,7 @@ public class PaymentService {
     @Value("${toss.secret-key}")
     private String secretKey;
 
-    // 1. 결제 준비 - 결제 요청 시 Toss에 전달할 orderId, 금액, 사용자명, 아이템 정보만 응답
+    // 결제 준비 - 결제 요청 시 Toss에 전달할 orderId, 금액, 사용자명, 아이템 정보만 응답
     public PaymentReadyResponse preparePayment(PaymentReadyRequest request, String username) {
         Member member = memberRepository.findByUsername(username);
         if (member == null) {
@@ -55,7 +55,7 @@ public class PaymentService {
         );
     }
 
-    // 2. 결제 승인 (결제 성공 후 Rental, RentalItem 생성)
+    // 결제 승인 (결제 성공 후 Rental, RentalItem 생성)
     @Transactional
     public PaymentConfirmResponse confirmPayment(PaymentConfirmRequest request) {
         String url = "https://api.tosspayments.com/v1/payments/confirm";
