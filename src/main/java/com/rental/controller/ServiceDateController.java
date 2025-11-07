@@ -9,6 +9,7 @@ import com.rental.repository.ServiceDateRepository;
 import com.rental.service.ServiceDateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,9 +24,11 @@ public class ServiceDateController {
     private final ServiceDateService serviceDateService;
     private final ServiceDateRepository serviceDateRepository;
 
-    @GetMapping("/{rentalId}/service-dates")
-    public List<ServiceDateDto> getServiceDates(@PathVariable Long rentalId) {
-        List<ServiceDate> serviceDates = serviceDateRepository.findByRentalItem_RentalId(rentalId);
+    @GetMapping("/{rentalItemId}/service-dates")
+    public List<ServiceDateDto> getServiceDates(@PathVariable Long rentalItemId) {
+        // rentalItem 기준으로 ServiceDate 조회
+        List<ServiceDate> serviceDates = serviceDateRepository.findByRentalItem_Id(rentalItemId);
+
         return serviceDates.stream()
                 .map(sd -> new ServiceDateDto(sd.getId(), sd.getServiceDate()))
                 .toList();
@@ -33,15 +36,22 @@ public class ServiceDateController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addService(@RequestBody ServiceDateRequest dto) {
-        // 여기서 서비스 추가 로직
-        serviceDateService.addServiceDate(dto.getRentalItemId(), dto.getServiceDate());
-        return ResponseEntity.ok("등록 성공");
+        try {
+            // 문자열 "YYYY-MM-DD" → LocalDate
+            LocalDate date = dto.getServiceDate();
+            // 필요 시 명시적 변환 (LocalDate.parse)
+            serviceDateService.addServiceDate(dto.getRentalId(), date);
+            return ResponseEntity.ok("등록 성공");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    // DELETE 대신 POST로 삭제 처리 권장
     @PostMapping("/remove")
     public ResponseEntity<?> removeServiceDate(@RequestBody ServiceDateRequest dto) {
         serviceDateService.removeServiceDate(dto.getRentalItemId(), dto.getServiceDate());
         return ResponseEntity.ok("서비스 날짜 삭제 완료");
     }
+
+
 }

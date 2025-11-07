@@ -28,4 +28,9 @@ public class ServiceDate {
     @Column(name = "service_date", nullable = false)
     private LocalDate serviceDate; // 서비스 출장일
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rental_id", nullable = false)
+    private Rental rental;
+
+
 }
