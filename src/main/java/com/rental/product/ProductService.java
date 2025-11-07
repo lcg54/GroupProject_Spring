@@ -4,6 +4,7 @@ import com.rental.constant.Brand;
 import com.rental.constant.Category;
 import com.rental.member.Member;
 import com.rental.member.MemberRepository;
+import com.rental.rental.RentalItemRepository;
 import com.rental.review.Review;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductLogRepository productLogRepository;
     private final MemberRepository memberRepository;
+    private final RentalItemRepository rentalItemRepository;
 
     @Value("${productImageLocation}")
     private String uploadDir;
@@ -154,8 +156,7 @@ public class ProductService {
 
         productRepository.save(product);
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Member admin = memberRepository.findByUsername(username);
+        Member admin = memberRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         productLogRepository.save(
                 ProductLog.builder()
                         .product(product)
@@ -248,8 +249,7 @@ public class ProductService {
 
         productRepository.save(product);
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Member admin = memberRepository.findByUsername(username);
+        Member admin = memberRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         productLogRepository.saveAndFlush(
                 ProductLog.builder()
                         .product(product)
@@ -265,8 +265,13 @@ public class ProductService {
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + id));
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Member admin = memberRepository.findByUsername(username);
+
+        boolean inUse = rentalItemRepository.existsByProduct(product);
+        if (inUse) {
+            throw new IllegalStateException("주문이 들어온 상품은 삭제 할 수 없습니다.");
+        }
+        //  사용 중이 아니면 실제 삭제
+        Member admin = memberRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
 
         productLogRepository.save(
                 ProductLog.builder()

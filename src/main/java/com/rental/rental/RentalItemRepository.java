@@ -2,6 +2,7 @@ package com.rental.rental;
 
 import com.rental.constant.Category;
 import com.rental.constant.RentalStatus;
+import com.rental.product.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,8 @@ public interface RentalItemRepository extends JpaRepository<RentalItem, Long> {
     Page<RentalItem> findByStatus(RentalStatus status, Pageable pageable);
 
     long countByStatus(RentalStatus status);
+
+    boolean existsByProduct(Product product);
 
     @Query("select ri from RentalItem ri " +
             "join ri.product p " +
