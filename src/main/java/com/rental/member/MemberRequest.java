@@ -1,0 +1,15 @@
+package com.rental.member;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class MemberRequest {
+    private String username;
+    private String name;
+    private String email;
+    private String password;
+    private String phone;
+    private String address;
+}

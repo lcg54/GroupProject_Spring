@@ -1,8 +1,8 @@
 package com.rental.test;
 
 import com.rental.constant.Role;
-import com.rental.entity.Member;
-import com.rental.repository.MemberRepository;
+import com.rental.member.Member;
+import com.rental.member.MemberRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
