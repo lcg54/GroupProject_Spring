@@ -1,4 +1,4 @@
-package com.rental.payment;
+package com.rental.payment.billingKey;
 
 import lombok.Data;
 

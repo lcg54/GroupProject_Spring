@@ -95,6 +95,12 @@ public class RentalController {
         return ResponseEntity.ok(result);
     }
 
+    // 반납 요청 취소
+    @PostMapping("/cancelReturn/{rentalItemId}")
+    public ResponseEntity<String> cancelReturn(@PathVariable Long rentalItemId) {
+        return ResponseEntity.ok(rentalService.cancelReturnRequest(rentalItemId));
+    }
+
     // 회원별 리뷰를 쓰지 않은 대여 내역 조회
     @GetMapping("/member/{memberId}/unreviewed")
     public ResponseEntity<List<RentalResponse>> getUnreviewedRentals(@PathVariable Long memberId) {

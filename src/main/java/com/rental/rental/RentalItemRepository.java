@@ -15,6 +15,8 @@ import java.util.List;
 
 @Repository
 public interface RentalItemRepository extends JpaRepository<RentalItem, Long> {
+    List<RentalItem> findByRental(Rental rental);
+
     Page<RentalItem> findByStatus(RentalStatus status, Pageable pageable);
 
     long countByStatus(RentalStatus status);

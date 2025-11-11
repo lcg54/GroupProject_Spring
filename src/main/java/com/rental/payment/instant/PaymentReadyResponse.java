@@ -1,4 +1,4 @@
-package com.rental.payment;
+package com.rental.payment.instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

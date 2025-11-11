@@ -4,6 +4,7 @@ import com.rental.constant.PaymentStatus;
 import com.rental.constant.RentalStatus;
 import com.rental.product.Product;
 import com.rental.review.Review;
+import com.rental.serviceDate.ServiceDate;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -50,5 +52,6 @@ public class RentalItem {
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus; // 결제 상태
 
-    private LocalDate serviceDate; // 서비스 출장일
+    @OneToMany(mappedBy = "rentalItem", fetch = FetchType.LAZY)
+    private List<ServiceDate> serviceDates; // 서비스 출장일
 }

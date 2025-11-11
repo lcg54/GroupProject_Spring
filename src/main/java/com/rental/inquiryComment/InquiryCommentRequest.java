@@ -1,4 +1,4 @@
-package com.rental.inquiry;
+package com.rental.inquiryComment;
 
 import lombok.*;
 

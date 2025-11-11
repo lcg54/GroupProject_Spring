@@ -1,4 +1,4 @@
-package com.rental.payment;
+package com.rental.payment.billingKey;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
