@@ -2,6 +2,8 @@ package com.rental.inquiry;
 
 import com.rental.constant.InquiryType;
 import com.rental.constant.Role;
+import com.rental.inquiryComment.InquiryComment;
+import com.rental.inquiryComment.InquiryCommentResponse;
 import com.rental.member.Member;
 import com.rental.member.MemberRepository;
 import com.rental.product.Product;
@@ -16,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class InquiryService {
     private final InquiryRepository inquiryRepository;
-    private final InquiryCommentRepository commentRepository;
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
 
@@ -117,36 +118,6 @@ public class InquiryService {
                 .build();
 
         return inquiryRepository.save(inquiry);
-    }
-
-    // 관리자 답변 등록
-    public InquiryCommentResponse createAdminComment(Long inquiryId, Long adminId, String commentText) {
-        Inquiry inquiry = inquiryRepository.findById(inquiryId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다."));
-        Member admin = memberRepository.findById(adminId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관리자입니다."));
-
-        if (!admin.getRole().equals(Role.ADMIN)) {
-            throw new IllegalStateException("관리자만 답변을 작성할 수 있습니다.");
-        }
-        if (commentRepository.findByInquiryId(inquiryId) != null) {
-            throw new IllegalStateException("이미 답변이 등록된 문의입니다.");
-        }
-
-        InquiryComment comment = InquiryComment.builder()
-                .inquiry(inquiry)
-                .admin(admin)
-                .comment(commentText)
-                .build();
-
-        inquiry.setAdminComment(comment);
-        InquiryComment saved = commentRepository.save(comment);
-
-        return InquiryCommentResponse.builder()
-                .admin(saved.getAdmin().getName())
-                .comment(saved.getComment())
-                .createdAt(saved.getCreatedAt())
-                .build();
     }
 
     // 회원별 문의글 조회

@@ -43,21 +43,6 @@ public class InquiryController {
         return ResponseEntity.ok(saved);
     }
 
-    // 관리자 답변 등록
-    @PostMapping("/product/{productId}/inquiry/{inquiryId}/comment")
-    public ResponseEntity<?> createAdminComment(
-            @PathVariable Long productId,
-            @PathVariable Long inquiryId,
-            @RequestBody InquiryCommentRequest inquiryCommentRequest
-    ) {
-        var saved = inquiryService.createAdminComment(
-                inquiryId,
-                inquiryCommentRequest.getAdminId(),
-                inquiryCommentRequest.getComment()
-        );
-        return ResponseEntity.ok(saved);
-    }
-
     // 회원별 문의글 조회
     @GetMapping("/member/{memberId}/inquiry")
     public ResponseEntity<Page<InquiryResponse>> getMemberInquiries(

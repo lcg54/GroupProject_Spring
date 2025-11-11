@@ -2,6 +2,9 @@ package com.rental.rental;
 
 import com.rental.constant.RentalStatus;
 import com.rental.member.Member;
+import com.rental.payment.PaymentRecordRepository;
+import com.rental.payment.SubscriptionRepository;
+import com.rental.payment.SubscriptionService;
 import com.rental.product.Product;
 import com.rental.member.MemberRepository;
 import com.rental.product.ProductRepository;
@@ -15,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,9 @@ public class RentalService {
     private final RentalItemRepository rentalItemRepository;
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final PaymentRecordRepository paymentRecordRepository;
+    private final SubscriptionService subscriptionService;
     private final PriceCalculator calculator;
 
     // 대여 생성 (createdAt 자동 설정)
@@ -240,10 +247,22 @@ public class RentalService {
             throw new IllegalStateException("예약 중인 상품만 취소할 수 있습니다.");
         }
 
-        Product product = item.getProduct();
-        int qty = item.getQuantity();
+        // 구독이 있는지 확인
+        subscriptionRepository.findByRentalItemId(rentalItemId).ifPresent(sub -> {
+            // 이미 첫 결제가 되었는지 판단: paymentRecord에서 성공 기록이 있으면 환불
+            boolean hadSuccess = paymentRecordRepository.findAll().stream()
+                    .anyMatch(r -> Objects.equals(r.getSubscriptionId(), sub.getId()) && r.isSuccess());
+
+            if (hadSuccess) {
+                subscriptionService.cancelSubscription(sub.getId()); // 자동 환불 및 구독 취소
+            } else {
+                subscriptionService.cancelSubscription(sub.getId()); // 단순 취소
+            }
+        });
 
         // 예약 재고 감소 및 일반 재고 복구
+        Product product = item.getProduct();
+        int qty = item.getQuantity();
         product.setReservedStock(Math.max(product.getReservedStock() - qty, 0));
         productRepository.save(product);
 
@@ -267,6 +286,22 @@ public class RentalService {
         rentalItemRepository.save(item);
 
         return "반납 요청이 접수되었습니다.";
+    }
+
+    // 반납 요청 취소
+    @Transactional
+    public String cancelReturnRequest(Long rentalItemId) {
+        RentalItem item = rentalItemRepository.findById(rentalItemId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 대여 상품을 찾을 수 없습니다."));
+
+        if (item.getStatus() != RentalStatus.RETURN_REQUESTED) {
+            throw new IllegalStateException("반납 요청 상태인 상품만 취소할 수 있습니다.");
+        }
+
+        item.setStatus(RentalStatus.RENTED); // 다시 대여 중으로 복귀
+        rentalItemRepository.save(item);
+
+        return "반납 요청이 취소되었습니다.";
     }
 
     // 리뷰를 쓰지 않은 대여 내역 조회

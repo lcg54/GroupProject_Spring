@@ -2,6 +2,7 @@ package com.rental.inquiry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rental.constant.InquiryType;
+import com.rental.inquiryComment.InquiryCommentResponse;
 import lombok.*;
 import java.time.LocalDateTime;
 

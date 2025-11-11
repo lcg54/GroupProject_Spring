@@ -1,6 +1,7 @@
 package com.rental.inquiry;
 
 import com.rental.constant.InquiryType;
+import com.rental.inquiryComment.InquiryComment;
 import com.rental.product.Product;
 import com.rental.member.Member;
 import jakarta.persistence.*;

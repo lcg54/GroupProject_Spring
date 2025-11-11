@@ -1,5 +1,6 @@
-package com.rental.inquiry;
+package com.rental.inquiryComment;
 
+import com.rental.inquiry.Inquiry;
 import com.rental.member.Member;
 import jakarta.persistence.*;
 import lombok.*;
