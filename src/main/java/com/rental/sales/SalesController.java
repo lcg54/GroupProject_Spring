@@ -28,7 +28,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/sales")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
 public class SalesController {
 
     private final SalesService salesService;

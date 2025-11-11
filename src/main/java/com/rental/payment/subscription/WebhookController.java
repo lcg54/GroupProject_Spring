@@ -1,4 +1,4 @@
-package com.rental.payment;
+package com.rental.payment.subscription;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

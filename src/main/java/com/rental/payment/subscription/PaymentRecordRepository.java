@@ -1,4 +1,4 @@
-package com.rental.payment;
+package com.rental.payment.subscription;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
