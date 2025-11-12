@@ -2,8 +2,8 @@ package com.rental.test;
 
 import com.rental.member.Member;
 import com.rental.member.MemberRepository;
-import com.rental.payment.Subscription;
-import com.rental.payment.SubscriptionRepository;
+import com.rental.payment.subscription.Subscription;
+import com.rental.payment.subscription.SubscriptionRepository;
 import com.rental.constant.SubscriptionStatus;
 import com.rental.product.Product;
 import com.rental.product.ProductRepository;

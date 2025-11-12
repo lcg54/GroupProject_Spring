@@ -2,9 +2,9 @@ package com.rental.rental;
 
 import com.rental.constant.RentalStatus;
 import com.rental.member.Member;
-import com.rental.payment.PaymentRecordRepository;
-import com.rental.payment.SubscriptionRepository;
-import com.rental.payment.SubscriptionService;
+import com.rental.payment.subscription.PaymentRecordRepository;
+import com.rental.payment.subscription.SubscriptionRepository;
+import com.rental.payment.subscription.SubscriptionService;
 import com.rental.product.Product;
 import com.rental.member.MemberRepository;
 import com.rental.product.ProductRepository;

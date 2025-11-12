@@ -16,7 +16,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("""
         SELECT p FROM Product p
         LEFT JOIN Review r ON r.product = p
-        WHERE ((:categories IS NULL OR p.category IN :categories))
+        WHERE p.deleted = FALSE
+        AND ((:categories IS NULL OR p.category IN :categories))
         AND ((:brands IS NULL OR p.brand IN :brands))
         AND (:available IS NULL OR 
              (:available = TRUE AND (p.totalStock - p.reservedStock - p.rentedStock - p.repairStock) > 0) OR 
@@ -41,7 +42,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             Pageable pageable
     );
 
-    List<Product> findTop3ByOrderByRentedStockDesc();
+    List<Product> findTop3ByDeletedFalseOrderByRentedStockDesc();
 
-    List<Product> findByCategoryImageContaining(String keyword);
+    List<Product> findByDeletedFalseAndCategoryImageContaining(String keyword);
 }

@@ -1,16 +1,13 @@
-package com.rental.payment;
+package com.rental.payment.subscription;
 
 import com.rental.payment.billingKey.BillingKey;
 import com.rental.payment.billingKey.BillingKeyRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/subscriptions")

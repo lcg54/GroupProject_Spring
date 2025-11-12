@@ -8,3 +8,4 @@ public class WishListRequest {
     @NotNull private Long memberId;
     @NotNull private Long productId;
 }
+

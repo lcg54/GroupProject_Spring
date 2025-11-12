@@ -15,10 +15,8 @@ import java.util.Map;
 @RequestMapping("/wishlist")
 @RequiredArgsConstructor
 public class WishListController {
-
     private final WishListService wishlistservice;
     private final MemberService memberservice;
-    private final ProductService productservice;
 
     // 현재 찜 상태 확인
     @GetMapping("/status")
@@ -40,6 +38,7 @@ public class WishListController {
         return Map.of("wished", wished);
     }
 
+    // 내 찜 목록
     @GetMapping("/my")
     public List<Long> my(@RequestParam Long memberId) {
         return wishlistservice.getMyProductIds(memberId);

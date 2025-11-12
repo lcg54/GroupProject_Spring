@@ -1,4 +1,4 @@
-package com.rental.payment;
+package com.rental.payment.subscription;
 
 import com.rental.constant.PaymentStatus;
 import com.rental.constant.RentalStatus;

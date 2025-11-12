@@ -1,7 +1,8 @@
-package com.rental.product;
+package com.rental.product.admin;
 
 
 import com.rental.member.Member;
+import com.rental.product.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,11 +18,9 @@ public class ProductLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
-
-    @Column(name = "product_name", nullable = false, length = 100)
-    private String productName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id")
@@ -38,4 +37,3 @@ public class ProductLog {
         if (createdAt == null) createdAt = LocalDateTime.now();
     }
 }
-
