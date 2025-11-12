@@ -1,4 +1,4 @@
-package com.rental.product;
+package com.rental.product.admin;
 
 
 import org.springframework.data.jpa.repository.EntityGraph;

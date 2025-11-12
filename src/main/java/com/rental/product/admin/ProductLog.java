@@ -1,7 +1,8 @@
-package com.rental.product;
+package com.rental.product.admin;
 
 
 import com.rental.member.Member;
+import com.rental.product.Product;
 import jakarta.persistence.*;
 import lombok.*;
 

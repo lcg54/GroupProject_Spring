@@ -1,5 +1,6 @@
 package com.rental.member;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -141,5 +142,10 @@ public class MemberService {
         } catch (Exception e) {
             System.err.println("기존 이미지 삭제 실패: " + e.getMessage());
         }
+    }
+
+    // 찜 권한 확인
+    public boolean isAdmin(@NotNull Long memberId) {
+        return false;
     }
 }

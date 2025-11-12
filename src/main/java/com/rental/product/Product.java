@@ -73,4 +73,11 @@ public class Product {
         int unavailableStock = reservedStock + shippingStock + rentedStock + repairStock + returnRequestedStock;
         return Math.max(totalStock - unavailableStock, 0);
     }
+
+    private boolean deleted = false; // 삭제하면 true(매핑된 테이블이 많아 삭제가 안되므로 논리 삭제)
+
+    public void delete() {
+        this.deleted = true;
+        this.available = false;
+    }
 }
