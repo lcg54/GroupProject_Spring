@@ -41,7 +41,8 @@ public class SubscriptionService {
                         sub.getRentalItem().getProduct().getName(),
                         sub.getAmount(),
                         sub.getNextBillingDate(),
-                        sub.getStatus().name()
+                        sub.getStatus().name(),
+                        sub.getRentalItem().getPaymentStatus().name()
                 ));
     }
 

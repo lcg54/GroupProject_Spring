@@ -1,4 +1,4 @@
-package com.rental.review;
+package com.rental.review.recommend;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

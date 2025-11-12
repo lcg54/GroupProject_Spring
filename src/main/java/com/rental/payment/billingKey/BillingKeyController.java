@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -41,5 +42,12 @@ public class BillingKeyController {
 
         billingKeyRepository.save(entity);
         return ResponseEntity.ok("Billing key가 성공적으로 저장되었습니다.");
+    }
+
+    // 등록된 카드 조회
+    @GetMapping("/cards/{customerKey}")
+    public ResponseEntity<?> getCards(@PathVariable String customerKey) {
+        List<Map<String, Object>> cards = billingKeyService.getCardsByCustomerKey(customerKey);
+        return ResponseEntity.ok(Map.of("data", cards));
     }
 }

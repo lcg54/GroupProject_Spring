@@ -1,6 +1,7 @@
-package com.rental.review;
+package com.rental.review.recommend;
 
 import com.rental.member.Member;
+import com.rental.review.Review;
 import jakarta.persistence.*;
 import lombok.*;
 

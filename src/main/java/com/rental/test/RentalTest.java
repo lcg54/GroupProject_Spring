@@ -1,5 +1,6 @@
 package com.rental.test;
 
+import com.rental.constant.PaymentStatus;
 import com.rental.member.Member;
 import com.rental.member.MemberRepository;
 import com.rental.payment.subscription.Subscription;
@@ -44,7 +45,6 @@ public class RentalTest {
         int successCount = 0;
         int skippedOrders = 0;
         int skippedItems = 0;
-        int subscriptionCount = 0;
 
         for (Member member : members) {
             int orderCount = random.nextInt(6); // 0~5건 주문 (랜덤)
@@ -109,22 +109,23 @@ public class RentalTest {
                         Rental rental = rentalService.createRentalWithDate(request, orderDate);
                         successCount++;
 
-                        // ✅ 새로 생성된 Rental에 포함된 RentalItem을 가져와 구독 생성
+                        // ✅ 새로 생성된 Rental에 포함된 RentalItem을 가져와 구독 생성 + 결제상태 PAID
                         List<RentalItem> rentalItems = rentalItemRepository.findByRental(rental);
+                        List<Subscription> subs = rentalItems.stream()
+                                .map(item -> Subscription.builder()
+                                        .memberId(member.getId())
+                                        .rentalItem(item)
+                                        .billingKey("TEST-BILLING-" + UUID.randomUUID())
+                                        .amount(item.getMonthlyPrice())
+                                        .nextBillingDate(item.getRentalStart())
+                                        .status(SubscriptionStatus.ACTIVE)
+                                        .retryCount(0)
+                                        .build())
+                                .toList();
 
-                        for (RentalItem item : rentalItems) {
-                            Subscription sub = Subscription.builder()
-                                    .memberId(member.getId())
-                                    .rentalItem(item)
-                                    .billingKey("TEST-BILLING-" + UUID.randomUUID()) // 샘플 (동작 x)
-                                    .amount(item.getMonthlyPrice())
-                                    .nextBillingDate(item.getRentalStart())
-                                    .status(SubscriptionStatus.ACTIVE)
-                                    .retryCount(0)
-                                    .build();
-                            subscriptionRepository.save(sub);
-                            subscriptionCount++;
-                        }
+                        subscriptionRepository.saveAll(subs);
+                        rentalItems.forEach(item -> item.setPaymentStatus(PaymentStatus.PAID));
+                        rentalItemRepository.saveAll(rentalItems);
 
                     } catch (Exception e) {
                         skippedOrders++;
@@ -138,7 +139,6 @@ public class RentalTest {
 
         System.out.println("========== 랜덤 렌탈 + 구독 샘플 데이터 생성 완료 ==========");
         System.out.println("✅ 생성된 대여 주문 수: " + successCount);
-        System.out.println("💳 생성된 구독 수: " + subscriptionCount);
         System.out.println("⚠️ 재고 부족으로 건너뛴 상품: " + skippedItems);
         System.out.println("❌ 생성 실패한 주문: " + skippedOrders);
     }

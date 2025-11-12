@@ -169,6 +169,7 @@ public class SalesService {
                                 it.getRentalEnd(),
                                 monthly,
                                 it.getStatus(),
+                                it.getPaymentStatus(),
                                 it.getProduct().getMainImage()
                         );
                     })
