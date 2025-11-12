@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,30 +16,36 @@ public class ServiceDateController {
 
     @GetMapping("/{rentalItemId}/service-dates")
     public List<ServiceDateDto> getServiceDates(@PathVariable Long rentalItemId) {
-        // rentalItem 기준으로 ServiceDate 조회
         List<ServiceDate> serviceDates = serviceDateRepository.findByRentalItem_Id(rentalItemId);
 
         return serviceDates.stream()
-                .map(sd -> new ServiceDateDto(sd.getId(), sd.getServiceDate()))
+                .map(sd -> new ServiceDateDto(sd.getRentalItem().getId(), sd.getServiceDate()))
                 .toList();
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addService(@RequestBody ServiceDateRequest dto) {
+    public ResponseEntity<String> addService(@RequestBody ServiceDateRequest dto) {
         try {
-            // 문자열 "YYYY-MM-DD" → LocalDate
-            LocalDate date = dto.getServiceDate();
-            // 필요 시 명시적 변환 (LocalDate.parse)
-            serviceDateService.addServiceDate(dto.getRentalId(), date);
-            return ResponseEntity.ok("등록 성공");
+            serviceDateService.addServiceDate(dto.getRentalId(), dto.getRentalItemId(), dto.getServiceDate());
+            return ResponseEntity.ok("서비스 날짜가 등록되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("등록 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 
     @PostMapping("/remove")
-    public ResponseEntity<?> removeServiceDate(@RequestBody ServiceDateRequest dto) {
-        serviceDateService.removeServiceDate(dto.getRentalItemId(), dto.getServiceDate());
-        return ResponseEntity.ok("서비스 날짜 삭제 완료");
+    public ResponseEntity<String> removeServiceDate(@RequestBody ServiceDateRequest dto) {
+        try {
+            boolean removed = serviceDateService.removeServiceDate(dto.getRentalItemId(), dto.getServiceDate());
+            if (removed) {
+                return ResponseEntity.ok("서비스 날짜가 삭제되었습니다.");
+            } else {
+                return ResponseEntity.badRequest().body("해당 서비스 날짜를 찾을 수 없습니다.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 }
