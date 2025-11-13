@@ -47,7 +47,7 @@ public class RentalTest {
         int skippedItems = 0;
 
         for (Member member : members) {
-            int orderCount = random.nextInt(6); // 0~5건 주문 (랜덤)
+            int orderCount = random.nextInt(4); // 0~3건 주문 (랜덤)
 
             for (int i = 0; i < orderCount; i++) {
                 RentalRequest request = new RentalRequest();
