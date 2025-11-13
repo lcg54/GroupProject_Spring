@@ -64,4 +64,10 @@ public class ProductController {
 
         return ResponseEntity.ok(result);
     }
+
+    // 상품 이미지 + 정보 통합 조회
+    @GetMapping("/category/{id}")
+    public ResponseEntity<Map<String, Object>> getProductImages(@PathVariable Long id) {
+        return ResponseEntity.ok(productService.getProductWithImages(id));
+    }
 }
