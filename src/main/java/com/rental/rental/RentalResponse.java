@@ -1,5 +1,6 @@
 package com.rental.rental;
 
+import com.rental.constant.PaymentStatus;
 import com.rental.constant.RentalStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,6 +30,7 @@ public class RentalResponse {
         private LocalDate rentalEnd;
         private int itemTotalPrice;
         private RentalStatus status;
+        private PaymentStatus paymentStatus;
         private String mainImage;
     }
 }

@@ -3,10 +3,8 @@ package com.rental.cart;
 import com.rental.member.MemberRepository;
 import com.rental.product.Product;
 import com.rental.product.ProductRepository;
-import com.rental.rental.Rental;
-import com.rental.rental.RentalRequest;
-import com.rental.rental.RentalResponse;
-import com.rental.rental.RentalService;
+import com.rental.rental.*;
+import com.rental.rental.find.FindRentalService;
 import com.rental.util.PriceCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +21,7 @@ public class CartService {
     private final ProductRepository productRepository;
     private final MemberRepository memberRepository;
     private final RentalService rentalService;
+    private final FindRentalService findRentalService;
     private final PriceCalculator priceCalculator;
 
     // 장바구니 추가
@@ -134,7 +133,7 @@ public class CartService {
         cartRepository.save(cart);
 
         // DTO 반환
-        return rentalService.convertToResponse(rental);
+        return findRentalService.convertToResponse(rental);
     }
 
     // 관리자용: 전체 회원 장바구니 요약 조회

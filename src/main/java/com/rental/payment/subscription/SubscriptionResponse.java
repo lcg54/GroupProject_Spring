@@ -15,4 +15,5 @@ public class SubscriptionResponse {
     private int amount;
     private LocalDate nextBillingDate;
     private String status;
+    private String paymentStatus;
 }
