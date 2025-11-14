@@ -47,13 +47,13 @@ public class RentalTest {
         int skippedItems = 0;
 
         for (Member member : members) {
-            int orderCount = random.nextInt(4); // 0~3건 주문 (랜덤)
+            int orderCount = 1 + random.nextInt(3); // 1~3건 주문 (랜덤)
 
             for (int i = 0; i < orderCount; i++) {
                 RentalRequest request = new RentalRequest();
                 request.setMemberId(member.getId());
 
-                int itemCount = 1 + random.nextInt(4); // 주문당 1~4상품 (랜덤)
+                int itemCount = 1 + random.nextInt(3); // 주문당 1~3상품 (랜덤)
                 List<RentalRequest.RentalItemRequest> items = new ArrayList<>();
 
                 LocalDateTime orderDate = null;
@@ -68,7 +68,7 @@ public class RentalTest {
                     }
 
                     int maxQty = Math.min(availableStock, 3);
-                    int quantity = 1 + random.nextInt(maxQty);
+                    int quantity = 1 + random.nextInt(maxQty); // 수량 1~3개
 
                     RentalRequest.RentalItemRequest itemReq = new RentalRequest.RentalItemRequest();
                     itemReq.setProductId(product.getId());
@@ -109,10 +109,33 @@ public class RentalTest {
                         Rental rental = rentalService.createRentalWithDate(request, orderDate);
                         successCount++;
 
-                        // ✅ 새로 생성된 Rental에 포함된 RentalItem을 가져와 구독 생성 + 결제상태 PAID
                         List<RentalItem> rentalItems = rentalItemRepository.findByRental(rental);
-                        List<Subscription> subs = rentalItems.stream()
-                                .map(item -> Subscription.builder()
+
+                        List<Subscription> subs = new ArrayList<>();
+
+                        for (RentalItem item : rentalItems) {
+                            // 과거(6년 이상) → END + CANCELED
+                            boolean isOldRental = item.getRentalStart().isBefore(today.minusYears(6));
+                            if (isOldRental) {
+                                item.setPaymentStatus(PaymentStatus.END);
+
+                                Subscription sub = Subscription.builder()
+                                        .memberId(member.getId())
+                                        .rentalItem(item)
+                                        .billingKey("TEST-BILLING-" + UUID.randomUUID())
+                                        .amount(item.getMonthlyPrice())
+                                        .nextBillingDate(null) // 결제 종료
+                                        .status(SubscriptionStatus.CANCELED)
+                                        .retryCount(0)
+                                        .build();
+
+                                subs.add(sub);
+
+                            // 최근(3년 이내) → PAID + ACTIVE
+                            } else {
+                                item.setPaymentStatus(PaymentStatus.PAID);
+
+                                Subscription sub = Subscription.builder()
                                         .memberId(member.getId())
                                         .rentalItem(item)
                                         .billingKey("TEST-BILLING-" + UUID.randomUUID())
@@ -120,11 +143,12 @@ public class RentalTest {
                                         .nextBillingDate(item.getRentalStart())
                                         .status(SubscriptionStatus.ACTIVE)
                                         .retryCount(0)
-                                        .build())
-                                .toList();
+                                        .build();
 
+                                subs.add(sub);
+                            }
+                        }
                         subscriptionRepository.saveAll(subs);
-                        rentalItems.forEach(item -> item.setPaymentStatus(PaymentStatus.PAID));
                         rentalItemRepository.saveAll(rentalItems);
 
                     } catch (Exception e) {

@@ -50,7 +50,7 @@ public class SubscriptionService {
     @Transactional
     public Subscription createSubscription(Long memberId, Long rentalItemId, String billingKey, int amount, LocalDate firstBillingDate) {
         RentalItem item = rentalItemRepository.findById(rentalItemId)
-                .orElseThrow(() -> new IllegalArgumentException("rentalItem not found"));
+                .orElseThrow(() -> new IllegalArgumentException("대여 상품 정보를 찾을 수 없습니다."));
 
         Subscription sub = Subscription.builder()
                 .memberId(memberId)
@@ -69,7 +69,7 @@ public class SubscriptionService {
     @Transactional
     public void chargeNow(Long subscriptionId) {
         Subscription sub = subscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new IllegalArgumentException("Subscription not found"));
+                .orElseThrow(() -> new IllegalArgumentException("구독 정보를 찾을 수 없습니다."));
 
         // 이번 달 결제 여부 확인
         paymentRecordRepository.findAll().stream()
@@ -87,31 +87,28 @@ public class SubscriptionService {
         chargeSubscription(sub);
     }
 
-    // 구독 취소: 대여 취소 시에 동작
+    // 구독 취소: 예약 취소 시에 동작
     @Transactional
     public void cancelSubscription(Long subscriptionId) {
         Subscription sub = subscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new IllegalArgumentException("Subscription not found"));
+                .orElseThrow(() -> new IllegalArgumentException("구독 정보를 찾을 수 없습니다."));
 
-        boolean hadSuccess = paymentRecordRepository.findAll().stream()
-                .anyMatch(r -> Objects.equals(r.getSubscriptionId(), subscriptionId) && r.isSuccess());
+        RentalItem item = rentalItemRepository.findById(sub.getRentalItem().getId())
+                .orElseThrow(() -> new IllegalArgumentException("대여 상품 정보를 찾을 수 없습니다."));
 
         sub.setStatus(SubscriptionStatus.CANCELED);
         subscriptionRepository.save(sub);
 
-        // 결제 이력이 있으면 환불 시도
-        if (hadSuccess) {
-            paymentRecordRepository.findAll().stream()
-                    .filter(r -> Objects.equals(r.getSubscriptionId(), subscriptionId) && r.isSuccess())
-                    .max(Comparator.comparing(PaymentRecord::getCreatedAt))
-                    .ifPresent(record -> {
-                        try {
-                            refundPayment(record.getPaymentKey(), record.getAmount());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-        }
+        // 최근 결제 성공 기록 조회
+        paymentRecordRepository
+                .findTopBySubscriptionIdAndSuccessOrderByCreatedAtDesc(subscriptionId)
+                .ifPresent(record -> { // 있으면 환불
+                    try {
+                        refundPayment(record.getPaymentKey(), record.getAmount(), item);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
     // 실제 결제 시도
@@ -120,7 +117,23 @@ public class SubscriptionService {
         if (sub.getStatus() != SubscriptionStatus.ACTIVE) return;
 
         RentalItem item = rentalItemRepository.findById(sub.getRentalItem().getId())
-                .orElseThrow(() -> new IllegalArgumentException("rentalItem not found"));
+                .orElseThrow(() -> new IllegalArgumentException("대여 상품 정보를 찾을 수 없습니다."));
+
+        // 결제 시도 실패 시
+        if (sub.getRetryCount() == 0) {
+            // 첫 결제 실패 → 예약 취소
+            item.setStatus(RentalStatus.CANCELED);
+            item.setPaymentStatus(PaymentStatus.UNPAID);
+            rentalItemRepository.save(item);
+
+            // 이미 결제된 금액이 있다면 환불
+            paymentRecordRepository.findAll().stream()
+                    .filter(r -> Objects.equals(r.getSubscriptionId(), sub.getId()) && r.isSuccess())
+                    .max(Comparator.comparing(PaymentRecord::getCreatedAt))
+                    .ifPresent(record -> refundPayment(record.getPaymentKey(), record.getAmount(), item));
+
+            return; // 추가 재시도 없이 종료
+        }
 
         // 반납/취소된 상품은 결제 중단
         if (item.getStatus() == RentalStatus.CANCELED ||
@@ -204,7 +217,7 @@ public class SubscriptionService {
     }
 
     // 환불 API 호출
-    private void refundPayment(String paymentKey, int amount) {
+    private void refundPayment(String paymentKey, int amount, RentalItem item) {
         if (paymentKey == null || paymentKey.isBlank()) return;
 
         String url = "https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel";
@@ -220,5 +233,9 @@ public class SubscriptionService {
 
         HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, headers);
         rt.postForEntity(url, req, Map.class);
+
+        // 환불 완료 상태 업데이트
+        item.setPaymentStatus(PaymentStatus.REFUNDED);
+        rentalItemRepository.save(item);
     }
 }

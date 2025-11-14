@@ -91,11 +91,11 @@ public class ReviewTest {
             long daysBetween = Math.max(1, today.toEpochDay() - orderLocalDate.toEpochDay());
             LocalDateTime reviewDate = orderDate.plusDays(random.nextInt((int) daysBetween + 1));
 
-            // 이미지 첨부 (임시로 카테고리이미지)
+            // 이미지 첨부
             int imageCount = 1 + random.nextInt(3); // 1~3장
             List<ReviewImage> images = new ArrayList<>();
             for (int i = 0; i < imageCount; i++) {
-                String fileName = "category_" + product.getCategory().name() + ".png";
+                String fileName = "sub_" + product.getCategory().name() + "_" + (1 + random.nextInt(5)) + ".avif";
                 ReviewImage image = ReviewImage.builder()
                         .fileName(fileName)
                         .seq(i)

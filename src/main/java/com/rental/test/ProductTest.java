@@ -31,7 +31,6 @@ public class ProductTest {
         String rootPath = "C:/shop/images/category/";
         List<Product> allProducts = new ArrayList<>();
         Category[] categories = Category.values();
-        Brand[] brands = Brand.values();
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.minusYears(15);
 
@@ -52,10 +51,10 @@ public class ProductTest {
                 Product p = new Product();
                 p.setName(productName);
                 p.setCategory(category);
-                p.setBrand(brands[random.nextInt(brands.length)]);
-                p.setDescription(productName + " 샘플 설명입니다.");
-                p.setPrice(6 * (25 + random.nextInt(25)) * 10000);
-                p.setTotalStock(999); // 총 재고 (임시)
+                p.setBrand(detectBrand(folderName));
+                p.setDescription("");
+                p.setPrice(6 * (20 + random.nextInt(25)) * 10000);
+                p.setTotalStock(100); // 총 재고 (임시)
                 p.setReservedStock(0);
                 p.setRentedStock(0);
                 p.setRepairStock(0);
@@ -103,5 +102,24 @@ public class ProductTest {
         } else {
             System.out.println("⚠️ 카테고리 폴더에서 상품을 찾지 못했습니다.");
         }
+    }
+
+    // 상품명 보고 브랜드 찾기
+    private Brand detectBrand(String productFolderName) {
+        String lower = productFolderName.toLowerCase();
+
+        if (lower.contains("삼성") || lower.contains("samsung"))
+            return Brand.SAMSUNG;
+        if (lower.contains("엘지") || lower.contains("lg"))
+            return Brand.LG;
+        if (lower.contains("위니아") || lower.contains("대우") || lower.contains("winia") || lower.contains("daewoo"))
+            return Brand.DAEWOO;
+        if (lower.contains("쿠쿠") || lower.contains("cuckoo"))
+            return Brand.CUCKOO;
+        if (lower.contains("sk") || lower.contains("sk매직") || lower.contains("skmagic") || lower.contains("magic"))
+            return Brand.SK_MAGIC;
+
+        // 매칭 안 될 경우 기본값
+        return Brand.OTHER;
     }
 }

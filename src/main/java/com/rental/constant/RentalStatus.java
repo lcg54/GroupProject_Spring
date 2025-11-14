@@ -1,6 +1,5 @@
 package com.rental.constant;
 
-// 고객이 선택한 상품의 대여 상태
 public enum RentalStatus {
     RESERVED,    // 예약 중
     SHIPPING,    // 배송 중
