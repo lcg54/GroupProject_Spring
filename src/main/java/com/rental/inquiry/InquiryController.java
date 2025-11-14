@@ -54,4 +54,38 @@ public class InquiryController {
         return ResponseEntity.ok(inquiries);
     }
 
+    // 문의글 수정
+    @PutMapping("/product/inquiry/{inquiryId}")
+    public ResponseEntity<?> updateInquiry(
+            @PathVariable Long inquiryId,
+            @RequestParam Long requesterId,
+            @RequestBody InquiryRequest request
+    ) {
+        inquiryService.updateInquiry(inquiryId, requesterId, request.getTitle(), request.getContent());
+        return ResponseEntity.ok("문의가 수정되었습니다.");
+    }
+
+    // 문의글 삭제
+    @DeleteMapping("/product/inquiry/{inquiryId}")
+    public ResponseEntity<?> deleteInquiry(
+            @PathVariable Long inquiryId,
+            @RequestParam Long requesterId
+    ) {
+        inquiryService.deleteInquiry(inquiryId, requesterId);
+        return ResponseEntity.ok("문의가 삭제되었습니다.");
+    }
+
+    // 관리자 전체 문의 조회 (모든 상품의 문의)
+    @GetMapping("/admin/inquiry")
+    public ResponseEntity<Page<InquiryResponse>> getAllInquiries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "desc") String sort,
+            @RequestParam(required = false) Boolean answered  // 답변 완료 여부 필터
+    ) {
+        Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
+
+        return ResponseEntity.ok(inquiryService.getAllInquiries(pageable, answered));
+    }
 }

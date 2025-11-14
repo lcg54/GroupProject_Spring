@@ -128,4 +128,62 @@ public class InquiryService {
         return inquiryPage.map(this::convertToDto);
     }
 
+    // 문의글 수정 (본인만 가능)
+    public void updateInquiry(Long inquiryId, Long requesterId, String title, String content) {
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의입니다."));
+
+        Member requester = memberRepository.findById(requesterId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // 본인 확인 (관리자는 수정 불가)
+        if (!inquiry.getMember().getId().equals(requesterId)) {
+            throw new IllegalStateException("본인의 문의글만 수정할 수 있습니다.");
+        }
+
+        if (requester.getRole().equals(Role.ADMIN)) {
+            throw new IllegalStateException("관리자는 문의글을 수정할 수 없습니다.");
+        }
+
+        inquiry.setTitle(title);
+        inquiry.setContent(content);
+        inquiryRepository.save(inquiry);
+    }
+
+    // 문의글 삭제 (본인 또는 관리자)
+    public void deleteInquiry(Long inquiryId, Long requesterId) {
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의입니다."));
+
+        Member requester = memberRepository.findById(requesterId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // 본인 또는 관리자만 삭제 가능
+        boolean isOwner = inquiry.getMember().getId().equals(requesterId);
+        boolean isAdmin = requester.getRole().equals(Role.ADMIN);
+
+        if (!isOwner && !isAdmin) {
+            throw new IllegalStateException("본인의 문의글이거나 관리자만 삭제할 수 있습니다.");
+        }
+
+        inquiryRepository.delete(inquiry);
+    }
+
+    // 관리자 전체 문의 조회
+    public Page<InquiryResponse> getAllInquiries(Pageable pageable, Boolean answered) {
+        Page<Inquiry> inquiries;
+
+        if (answered == null) {
+            // 전체 조회
+            inquiries = inquiryRepository.findAll(pageable);
+        } else if (answered) {
+            // 답변 완료된 문의만
+            inquiries = inquiryRepository.findByAdminCommentIsNotNull(pageable);
+        } else {
+            // 답변 대기 중인 문의만
+            inquiries = inquiryRepository.findByAdminCommentIsNull(pageable);
+        }
+
+        return inquiries.map(this::convertToDto);
+    }
 }

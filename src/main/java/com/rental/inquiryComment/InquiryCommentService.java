@@ -46,4 +46,45 @@ public class InquiryCommentService {
                 .createdAt(saved.getCreatedAt())
                 .build();
     }
+
+    // 관리자 답변 수정
+    public void updateAdminComment(Long inquiryId, Long requesterId, String commentText) {
+        InquiryComment comment = commentRepository.findByInquiryId(inquiryId);
+
+        if (comment == null) {
+            throw new IllegalArgumentException("답변이 존재하지 않습니다.");
+        }
+
+        Member requester = memberRepository.findById(requesterId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        if (!requester.getRole().equals(Role.ADMIN)) {
+            throw new IllegalStateException("관리자만 답변을 수정할 수 있습니다.");
+        }
+
+        comment.setComment(commentText);
+        commentRepository.save(comment);
+    }
+
+    // 관리자 답변 삭제
+    public void deleteAdminComment(Long inquiryId, Long requesterId) {
+        InquiryComment comment = commentRepository.findByInquiryId(inquiryId);
+
+        if (comment == null) {
+            throw new IllegalArgumentException("답변이 존재하지 않습니다.");
+        }
+
+        Member requester = memberRepository.findById(requesterId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        if (!requester.getRole().equals(Role.ADMIN)) {
+            throw new IllegalStateException("관리자만 답변을 삭제할 수 있습니다.");
+        }
+
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의글입니다."));
+
+        inquiry.setAdminComment(null);
+        commentRepository.delete(comment);
+    }
 }

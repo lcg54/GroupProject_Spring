@@ -99,9 +99,9 @@ public class SubscriptionService {
         sub.setStatus(SubscriptionStatus.CANCELED);
         subscriptionRepository.save(sub);
 
-        // 최근 결제 성공 기록 조회
+        // 최근 결제 성공 기록 조회 — 수정: success = true 고정 메서드 사용
         paymentRecordRepository
-                .findTopBySubscriptionIdAndSuccessOrderByCreatedAtDesc(subscriptionId)
+                .findTopBySubscriptionIdAndSuccessTrueOrderByCreatedAtDesc(subscriptionId)
                 .ifPresent(record -> { // 있으면 환불
                     try {
                         refundPayment(record.getPaymentKey(), record.getAmount(), item);

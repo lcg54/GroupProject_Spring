@@ -5,5 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface PaymentRecordRepository extends JpaRepository<PaymentRecord, Long> {
-    Optional<PaymentRecord> findTopBySubscriptionIdAndSuccessOrderByCreatedAtDesc(Long subscriptionId);
+
+    // success = true 인 최근 결제 기록 1개 조회
+    Optional<PaymentRecord> findTopBySubscriptionIdAndSuccessTrueOrderByCreatedAtDesc(Long subscriptionId);
 }
