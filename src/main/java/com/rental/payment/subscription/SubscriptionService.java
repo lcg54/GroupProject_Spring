@@ -100,14 +100,10 @@ public class SubscriptionService {
         subscriptionRepository.save(sub);
 
         // 최근 결제 성공 기록 조회
-        paymentRecordRepository
-                .findTopBySubscriptionIdAndSuccessOrderByCreatedAtDesc(subscriptionId)
-                .ifPresent(record -> { // 있으면 환불
-                    try {
-                        refundPayment(record.getPaymentKey(), record.getAmount(), item);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        paymentRecordRepository.findTopBySubscriptionIdOrderByCreatedAtDesc(sub.getId())
+                .filter(PaymentRecord::isSuccess)
+                .ifPresent(record -> {
+                    refundPayment(record.getPaymentKey(), record.getAmount(), item);
                 });
     }
 
