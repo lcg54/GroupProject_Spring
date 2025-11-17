@@ -68,7 +68,10 @@ public class RentalTest {
                     }
 
                     int maxQty = Math.min(availableStock, 3);
+                    System.out.println("availableStock=" + availableStock + ", maxQty=" + maxQty);
+                    if (maxQty <= 0) maxQty = 1;
                     int quantity = 1 + random.nextInt(maxQty);
+
 
                     RentalRequest.RentalItemRequest itemReq = new RentalRequest.RentalItemRequest();
                     itemReq.setProductId(product.getId());

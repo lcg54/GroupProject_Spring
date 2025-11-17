@@ -24,7 +24,7 @@ public class AdminProductController {
     @PostMapping(value = "/register/{memberId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> register(
             @PathVariable Long memberId,
-            @RequestPart(value = "mainImage", required = true) MultipartFile mainImage,
+            @RequestPart(value = "mainImage", required = false) MultipartFile mainImage,
             @RequestPart(value = "subImages", required = false) List<MultipartFile> subImages,
             @RequestPart(value = "detailImages", required = false) List<MultipartFile> detailImages,
             @RequestParam String name,
@@ -35,18 +35,19 @@ public class AdminProductController {
             @RequestParam(defaultValue = "true") Boolean available,
             @RequestParam Integer totalStock
     ) throws IOException {
-        adminProductService.register(memberId, mainImage, subImages, detailImages, name, category, brand, description, price, available, totalStock);
+        adminProductService.register( memberId,mainImage,subImages,detailImages,
+                name,category,brand,description,price, available,totalStock
+        );
         return ResponseEntity.ok("상품 등록 완료");
     }
+
 
     // 상품 수정
     @PutMapping(value = "/{id}/{memberId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
             @PathVariable Long memberId,
             @PathVariable Long id,
-            @RequestPart(value = "mainImage", required = false) MultipartFile mainImage,
-            @RequestPart(value = "subImages", required = false) List<MultipartFile> subImages,
-            @RequestPart(value = "detailImages", required = false) List<MultipartFile> detailImages,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestParam String name,
             @RequestParam String category,
             @RequestParam String brand,
@@ -62,14 +63,19 @@ public class AdminProductController {
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            List<String> existing = (existingImages == null || existingImages.isBlank()) ? Collections.emptyList() : mapper.readValue(existingImages, new TypeReference<>() {});
-            List<MultipartFile> allImages = new ArrayList<>();
-            if(mainImage != null) allImages.add(mainImage);
-            if(subImages != null) allImages.addAll(subImages);
-            if(detailImages != null) allImages.addAll(detailImages);
+            List<String> existing = (existingImages == null || existingImages.isBlank())
+                    ? Collections.emptyList()
+                    : mapper.readValue(existingImages, new TypeReference<>() {});
 
-            adminProductService.updateProduct(memberId, id, allImages, name, category, brand, description, price, available, totalStock, reservedStock, shippingStock, rentedStock, repairStock, existing);
+            adminProductService.updateProduct(
+                    memberId, id, images, name, category, brand, description,
+                    price, available, totalStock,
+                    reservedStock, shippingStock, rentedStock, repairStock,
+                    existing
+            );
+
             return ResponseEntity.ok("상품 수정 완료");
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "상품 수정 실패: " + e.getMessage()));
@@ -82,9 +88,11 @@ public class AdminProductController {
         try {
             adminProductService.deleteProduct(id, memberId);
             return ResponseEntity.ok(Map.of("message", "상품 삭제 완료"));
+
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "상품 삭제 중 오류가 발생했습니다."));
@@ -93,25 +101,30 @@ public class AdminProductController {
 
     // 등록 로그
     @GetMapping("/logs")
-    public ResponseEntity<List<Map<String, Object>>> getCreateLogs(){
-        List<ProductLog> logs = productLogRepository.findByEventOrderByCreatedAtDesc("CREATE");
+    public ResponseEntity<List<Map<String, Object>>> getCreateLogs() {
+        List<ProductLog> logs = productLogRepository
+                .findByEventOrderByCreatedAtDesc("CREATE");
         return ResponseEntity.ok(logForm(logs));
     }
 
-    // 수정/삭제 로그
+    // 수정(삭제) 로그
     @GetMapping("/logs/changes")
     public ResponseEntity<List<Map<String, Object>>> getChangeLogs() {
-        List<ProductLog> logs = productLogRepository.findByEventInOrderByCreatedAtDesc(List.of("UPDATE", "DELETE"));
+        List<ProductLog> logs = productLogRepository
+                .findByEventInOrderByCreatedAtDesc(List.of("UPDATE", "DELETE"));
         return ResponseEntity.ok(logForm(logs));
     }
 
-    // 로그용 내부 DTO
+    // 로그용 내부 dto
     private List<Map<String, Object>> logForm(List<ProductLog> logs) {
         List<Map<String, Object>> result = new ArrayList<>();
+
         for (ProductLog log : logs) {
             Map<String, Object> logUpdate = new HashMap<>();
+
             logUpdate.put("productId", log.getProduct().getId());
             logUpdate.put("productName", log.getProduct().getName());
+
             String adminName = "알 수 없음";
             if (log.getMember() != null) {
                 try {
@@ -120,11 +133,14 @@ public class AdminProductController {
                     adminName = "로딩 오류";
                 }
             }
+
             logUpdate.put("adminName", adminName);
             logUpdate.put("createdAt", log.getCreatedAt());
             logUpdate.put("event", log.getEvent());
+
             result.add(logUpdate);
         }
+
         return result;
     }
 }

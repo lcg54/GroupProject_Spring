@@ -22,6 +22,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Transactional
 public class AdminProductService {
+
     private final ProductRepository productRepository;
     private final ProductLogRepository productLogRepository;
     private final MemberRepository memberRepository;
@@ -33,7 +34,9 @@ public class AdminProductService {
     // 상품 등록
     public void register(
             Long memberId,
-            List<MultipartFile> images,
+            MultipartFile mainImage,
+            List<MultipartFile> subImages,
+            List<MultipartFile> detailImages,
             String name,
             String category,
             String brand,
@@ -42,38 +45,78 @@ public class AdminProductService {
             Boolean available,
             Integer totalStock
     ) throws IOException {
+
         Member admin = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
         if (uploadDir == null || uploadDir.isBlank()) {
             throw new IllegalStateException("productImageLocation(업로드 경로)가 설정되지 않았습니다.");
         }
-        if (images == null || images.isEmpty()) {
-            throw new IllegalArgumentException("이미지는 최소 1개 이상 필요합니다.");
-        }
 
-        File dir = new File(uploadDir);
-        if (!dir.exists()) dir.mkdirs();
+        String categoryDirName = category.toUpperCase();
+        String productDirName = name.replaceAll("[\\\\/:*?\"<>|]", "_") + "_" + UUID.randomUUID().toString().substring(0, 4);
+
+        File productDir = new File(uploadDir, "category/" + categoryDirName + "/" + productDirName);
+
+        if (!productDir.exists() && !productDir.mkdirs()) {
+            throw new IllegalStateException("상품 폴더 생성 실패: " + productDir.getAbsolutePath());
+        }
 
         List<ProductImage> imageEntities = new ArrayList<>();
         String mainImageFile = null;
-        int seq = 1;
 
-        for (MultipartFile imageFile : images) {
-            if (imageFile == null || imageFile.isEmpty()) continue;
+        // 대표 이미지
+        if (mainImage != null && !mainImage.isEmpty()) {
+            String ext = Optional.ofNullable(mainImage.getOriginalFilename()).orElse("img").replaceAll(".*(\\.[^.]+)$", "$1");
+            String savedName = "main_image" + ext;
 
-            String original = Optional.ofNullable(imageFile.getOriginalFilename()).orElse("img");
-            String ext = original.contains(".") ? original.substring(original.lastIndexOf(".")) : "";
-            String saved = UUID.randomUUID().toString() + ext;
+            File dest = new File(productDir, savedName);
+            mainImage.transferTo(dest);
 
-            imageFile.transferTo(new File(dir, saved));
+            mainImageFile = "category/" + categoryDirName + "/" + productDirName + "/" + savedName;
 
-            if (mainImageFile == null) mainImageFile = saved;
-            imageEntities.add(new ProductImage(null, null, saved, null, seq++));
+            imageEntities.add(new ProductImage(null, null, mainImageFile, null, 0)); // seq 0: 대표 이미지
+        } else {
+            throw new IllegalArgumentException("대표 이미지는 필수입니다.");
         }
 
-        if (mainImageFile == null) {
-            throw new IllegalArgumentException("업로드된 유효한 이미지가 없습니다.");
+        // 서브 이미지 (최대 4장)
+        if (subImages != null) {
+            int seq = 1;
+            for (MultipartFile sub : subImages) {
+                if (sub == null || sub.isEmpty()) continue;
+                if (seq > 4) break;
+
+                String ext = Optional.ofNullable(sub.getOriginalFilename()).orElse("img").replaceAll(".*(\\.[^.]+)$", "$1");
+                String savedName = "sub_image_" + seq + ext;
+
+                File dest = new File(productDir, savedName);
+                sub.transferTo(dest);
+
+                String path = "category/" + categoryDirName + "/" + productDirName + "/" + savedName;
+                imageEntities.add(new ProductImage(null, null, path, null, seq));
+
+                seq++;
+            }
+        }
+
+        // 상세 이미지 (순서대로)
+        if (detailImages != null) {
+            int seq = 1;
+            for (MultipartFile detail : detailImages) {
+                if (detail == null || detail.isEmpty()) continue;
+
+                String ext = Optional.ofNullable(detail.getOriginalFilename()).orElse("img").replaceAll(".*(\\.[^.]+)$", "$1");
+                String savedName = seq + ext;
+
+                File dest = new File(productDir, savedName);
+                detail.transferTo(dest);
+
+                String path = "category/" + categoryDirName + "/" + productDirName + "/" + savedName;
+                imageEntities.add(new ProductImage(null, null, path, null, seq));
+
+                seq++;
+            }
         }
 
         Product product = new Product();
@@ -95,6 +138,7 @@ public class AdminProductService {
         for (ProductImage pi : imageEntities) {
             pi.setProduct(product);
         }
+
         product.setImages(imageEntities);
 
         productRepository.save(product);
@@ -127,6 +171,7 @@ public class AdminProductService {
             Integer repairStock,
             List<String> existingImages
     ) throws IOException {
+
         Member admin = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
 
@@ -147,13 +192,16 @@ public class AdminProductService {
         product.setRepairStock(Optional.ofNullable(repairStock).orElse(0));
 
         if (product.getImages() == null) product.setImages(new ArrayList<>());
+
         List<String> keep = (existingImages == null) ? Collections.emptyList() : existingImages;
+
         product.getImages().removeIf(pi -> !keep.contains(pi.getFileName()));
 
         if (images != null && !images.isEmpty()) {
             if (uploadDir == null || uploadDir.isBlank()) {
                 throw new IllegalStateException("productImageLocation(업로드 경로)가 설정되지 않았습니다.");
             }
+
             File dir = new File(uploadDir);
             if (!dir.exists()) dir.mkdirs();
 
@@ -169,6 +217,7 @@ public class AdminProductService {
                 String saved = UUID.randomUUID().toString() + ext;
 
                 imageFile.transferTo(new File(dir, saved));
+
                 product.getImages().add(new ProductImage(null, product, saved, null, nextSeq++));
             }
         }
@@ -182,6 +231,7 @@ public class AdminProductService {
                 .map(ProductImage::getFileName)
                 .findFirst()
                 .orElse(null);
+
         if (newMain != null) {
             product.setMainImage(newMain);
         } else if (product.getMainImage() == null && !product.getImages().isEmpty()) {
@@ -213,6 +263,7 @@ public class AdminProductService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + id));
 
         boolean inUse = rentalItemRepository.existsByProduct(product);
+
         if (inUse) {
             throw new IllegalStateException("주문이 들어온 상품은 삭제 할 수 없습니다.");
         }
