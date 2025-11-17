@@ -70,6 +70,7 @@ public class InquiryService {
                 .title(inquiry.getTitle())
                 .content(inquiry.getContent())
                 .productId(inquiry.getProduct().getId())
+                .productName(inquiry.getProduct().getName())  // 상품명 추가
                 .memberId(inquiry.getMember().getId())
                 .member(inquiry.getMember().getName())
                 .type(inquiry.getType())
