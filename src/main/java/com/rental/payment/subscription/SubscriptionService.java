@@ -116,8 +116,8 @@ public class SubscriptionService {
                 .orElseThrow(() -> new IllegalArgumentException("대여 상품 정보를 찾을 수 없습니다."));
 
         // 결제 시도 실패 시
-        if (sub.getRetryCount() == 0) {
-            // 첫 결제 실패 → 예약 취소
+        if (sub.getRetryCount() == MAX_RETRY) {
+            // 결제 실패 → 예약 취소
             item.setStatus(RentalStatus.CANCELED);
             item.setPaymentStatus(PaymentStatus.UNPAID);
             rentalItemRepository.save(item);

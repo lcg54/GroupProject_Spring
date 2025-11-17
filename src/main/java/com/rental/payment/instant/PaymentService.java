@@ -4,6 +4,7 @@ import com.rental.constant.PaymentStatus;
 import com.rental.constant.RentalStatus;
 import com.rental.member.Member;
 import com.rental.member.MemberRepository;
+import com.rental.payment.subscription.SubscriptionRepository;
 import com.rental.product.Product;
 import com.rental.product.ProductRepository;
 import com.rental.rental.Rental;
@@ -31,6 +32,7 @@ public class PaymentService {
     private final RentalRepository rentalRepository;
     private final RentalItemRepository rentalItemRepository;
     private final PriceCalculator calculator;
+    private final SubscriptionRepository subscriptionRepository;
 
     @Value("${toss.secret-key}")
     private String secretKey;
