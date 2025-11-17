@@ -53,4 +53,20 @@ public class WishListService {
         }
         return result;
     }
+
+    // 선택 삭제 (여러 상품)
+    @Transactional
+    public int deleteSelected(Long memberId, List<Long> productIds) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        int deletedCount = 0;
+        for (Long productId : productIds) {
+            boolean exists = wishListRepository.existsByMemberIdAndProductId(memberId, productId);
+            if (exists) {
+                wishListRepository.deleteByMemberIdAndProductId(memberId, productId);
+                deletedCount++;
+            }
+        }
+        return deletedCount;
+    }
 }

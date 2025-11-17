@@ -1,7 +1,6 @@
 package com.rental.wishlist;
 
 import com.rental.member.MemberService;
-import com.rental.product.ProductService;
 import jakarta.validation.Valid;
 import lombok.*;
 import org.springframework.http.HttpStatus;
@@ -15,8 +14,8 @@ import java.util.Map;
 @RequestMapping("/wishlist")
 @RequiredArgsConstructor
 public class WishListController {
-    private final WishListService wishlistservice;
-    private final MemberService memberservice;
+    private final WishListService wishListService;
+    private final MemberService memberService;
 
     // 현재 찜 상태 확인
     @GetMapping("/status")
@@ -24,23 +23,33 @@ public class WishListController {
             @RequestParam Long memberId,
             @RequestParam Long productId
     ) {
-        boolean wished = wishlistservice.isWished(memberId, productId);
+        boolean wished = wishListService.isWished(memberId, productId);
         return Map.of("wished", wished);
     }
 
     // 찜 전환
     @PostMapping("/toggle")
     public Map<String, Object> toggle(@Valid @RequestBody WishListRequest req) {
-        if(memberservice.isAdmin(req.getMemberId())){
+        if(memberService.isAdmin(req.getMemberId())){
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자는 찜할 수 없습니다.");
         }
-        boolean wished = wishlistservice.toggle(req.getMemberId(), req.getProductId());
+        boolean wished = wishListService.toggle(req.getMemberId(), req.getProductId());
         return Map.of("wished", wished);
     }
 
     // 내 찜 목록
     @GetMapping("/my")
     public List<Long> my(@RequestParam Long memberId) {
-        return wishlistservice.getMyProductIds(memberId);
+        return wishListService.getMyProductIds(memberId);
+    }
+
+    // 선택 삭제 (여러 상품 삭제)
+    @PostMapping("/delete-selected")
+    public Map<String, Object> deleteSelected(@Valid @RequestBody DeleteSelectedRequest req) {
+        if (memberService.isAdmin(req.getMemberId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자는 찜을 삭제할 수 없습니다.");
+        }
+        int deletedCount = wishListService.deleteSelected(req.getMemberId(), req.getProductIds());
+        return Map.of("deletedCount", deletedCount);
     }
 }
