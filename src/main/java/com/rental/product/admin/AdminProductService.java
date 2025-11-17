@@ -88,7 +88,7 @@ public class AdminProductService {
                 if (seq > 4) break;
 
                 String ext = Optional.ofNullable(sub.getOriginalFilename()).orElse("img").replaceAll(".*(\\.[^.]+)$", "$1");
-                String savedName = "sub_image_" + seq + ext;
+                String savedName = "sub_image" + seq + ext;
 
                 File dest = new File(productDir, savedName);
                 sub.transferTo(dest);
