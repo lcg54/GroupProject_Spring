@@ -24,4 +24,27 @@ public class InquiryCommentController {
         );
         return ResponseEntity.ok(saved);
     }
+
+    // 관리자 답변 수정
+    @PutMapping("/product/{productId}/inquiry/{inquiryId}/comment")
+    public ResponseEntity<?> updateAdminComment(
+            @PathVariable Long productId,
+            @PathVariable Long inquiryId,
+            @RequestParam Long requesterId,
+            @RequestBody InquiryCommentRequest request
+    ) {
+        inquiryCommentService.updateAdminComment(inquiryId, requesterId, request.getComment());
+        return ResponseEntity.ok("답변이 수정되었습니다.");
+    }
+
+    // 관리자 답변 삭제
+    @DeleteMapping("/product/{productId}/inquiry/{inquiryId}/comment")
+    public ResponseEntity<?> deleteAdminComment(
+            @PathVariable Long productId,
+            @PathVariable Long inquiryId,
+            @RequestParam Long requesterId
+    ) {
+        inquiryCommentService.deleteAdminComment(inquiryId, requesterId);
+        return ResponseEntity.ok("답변이 삭제되었습니다.");
+    }
 }
