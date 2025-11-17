@@ -2,15 +2,25 @@ package com.rental.product.admin;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rental.member.Member;
+import com.rental.member.MemberRepository;
+import com.rental.product.*;
+import com.rental.rental.RentalItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/product")
@@ -35,19 +45,19 @@ public class AdminProductController {
             @RequestParam(defaultValue = "true") Boolean available,
             @RequestParam Integer totalStock
     ) throws IOException {
-        adminProductService.register( memberId,mainImage,subImages,detailImages,
-                name,category,brand,description,price, available,totalStock
-        );
+        adminProductService.register(memberId, mainImage, subImages, detailImages,
+                name, category, brand, description, price, available, totalStock);
         return ResponseEntity.ok("상품 등록 완료");
     }
-
 
     // 상품 수정
     @PutMapping(value = "/{id}/{memberId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
             @PathVariable Long memberId,
             @PathVariable Long id,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "mainImage", required = false) MultipartFile mainImage,
+            @RequestPart(value = "subImages", required = false) List<MultipartFile> subImages,
+            @RequestPart(value = "detailImages", required = false) List<MultipartFile> detailImages,
             @RequestParam String name,
             @RequestParam String category,
             @RequestParam String brand,
@@ -59,19 +69,33 @@ public class AdminProductController {
             @RequestParam(name = "shippingStock", defaultValue = "0") Integer shippingStock,
             @RequestParam(name = "rentedStock", defaultValue = "0") Integer rentedStock,
             @RequestParam(name = "repairStock", defaultValue = "0") Integer repairStock,
-            @RequestParam(name = "existingImages", required = false, defaultValue = "[]") String existingImages
+            @RequestParam(name = "existingImages", required = false, defaultValue = "[]") String existingImages,
+            @RequestParam(name = "deleteMainSub", required = false, defaultValue = "[]") String deleteMainSub,  // 추가
+            @RequestParam(name = "deleteDetail", required = false, defaultValue = "[]") String deleteDetail   // 추가
     ) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            List<String> existing = (existingImages == null || existingImages.isBlank())
+
+            // 기존 이미지 목록을 처리
+            List<String> keep = (existingImages == null || existingImages.isBlank())
                     ? Collections.emptyList()
                     : mapper.readValue(existingImages, new TypeReference<>() {});
 
+            // 삭제할 이미지 처리
+            List<String> deleteMainSubList = (deleteMainSub == null || deleteMainSub.isBlank())
+                    ? Collections.emptyList()
+                    : mapper.readValue(deleteMainSub, new TypeReference<>() {});
+
+            List<String> deleteDetailList = (deleteDetail == null || deleteDetail.isBlank())
+                    ? Collections.emptyList()
+                    : mapper.readValue(deleteDetail, new TypeReference<>() {});
+
+            // 상품 수정 서비스 호출
             adminProductService.updateProduct(
-                    memberId, id, images, name, category, brand, description,
-                    price, available, totalStock,
-                    reservedStock, shippingStock, rentedStock, repairStock,
-                    existing
+                    memberId, id, mainImage, subImages, detailImages,
+                    name, category, brand, description, price, available,
+                    totalStock, reservedStock, shippingStock, rentedStock, repairStock,
+                    keep, deleteMainSubList, deleteDetailList // 삭제할 이미지 리스트 전달
             );
 
             return ResponseEntity.ok("상품 수정 완료");
@@ -81,6 +105,8 @@ public class AdminProductController {
                     .body(Map.of("message", "상품 수정 실패: " + e.getMessage()));
         }
     }
+
+
 
     // 상품 삭제
     @DeleteMapping("/{id}/{memberId}")
