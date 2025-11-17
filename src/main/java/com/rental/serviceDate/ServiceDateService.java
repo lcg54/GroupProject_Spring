@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -48,5 +49,39 @@ public class ServiceDateService {
                     serviceDateRepository.delete(sd);
                     return true;
                 }).orElse(false);
+    }
+
+    // 전체 서비스일 목록
+    @Transactional(readOnly = true)
+    public List<ServiceDateAdminDto> getAllServiceDates() {
+        List<ServiceDate> all = serviceDateRepository.findAll();
+        return all.stream().map(sd -> new ServiceDateAdminDto(
+                sd.getId(),
+                sd.getServiceDate(),
+                sd.getRental().getId(),
+                sd.getRentalItem().getId(),
+                sd.getRentalItem().getProduct().getName(),
+                sd.getRental().getMember().getId(),
+                sd.getRental().getMember().getName(),
+                sd.getRentalItem().getRentalStart(),
+                sd.getRentalItem().getRentalEnd()
+        )).toList();
+    }
+
+    // 특정 날짜 서비스 조회
+    @Transactional(readOnly = true)
+    public List<ServiceDateAdminDto> getServiceDatesByDate(LocalDate date) {
+        List<ServiceDate> list = serviceDateRepository.findByServiceDate(date);
+        return list.stream().map(sd -> new ServiceDateAdminDto(
+                sd.getId(),
+                sd.getServiceDate(),
+                sd.getRental().getId(),
+                sd.getRentalItem().getId(),
+                sd.getRentalItem().getProduct().getName(),
+                sd.getRental().getMember().getId(),
+                sd.getRental().getMember().getName(),
+                sd.getRentalItem().getRentalStart(),
+                sd.getRentalItem().getRentalEnd()
+        )).toList();
     }
 }
