@@ -187,4 +187,8 @@ public class InquiryService {
 
         return inquiries.map(this::convertToDto);
     }
+
+    public long getWaitingCount() {
+        return inquiryRepository.countByNoAdminComment();
+    }
 }

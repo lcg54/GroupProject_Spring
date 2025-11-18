@@ -5,6 +5,8 @@ import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping
@@ -87,5 +89,11 @@ public class InquiryController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
 
         return ResponseEntity.ok(inquiryService.getAllInquiries(pageable, answered));
+    }
+
+    @GetMapping("/admin/inquiry/count-waiting")
+    public Map<String, Long> getWaitingCount() {
+        long count = inquiryService.getWaitingCount();
+        return Map.of("waitingCount", count);
     }
 }

@@ -17,6 +17,7 @@ public class ServiceDateAdminDto {
     private String productName;
     private Long memberId;
     private String memberName;
+    private String memberAddress;
     private LocalDate rentalStart;
     private LocalDate rentalEnd;
 }

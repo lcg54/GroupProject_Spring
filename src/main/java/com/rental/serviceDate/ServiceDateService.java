@@ -63,6 +63,7 @@ public class ServiceDateService {
                 sd.getRentalItem().getProduct().getName(),
                 sd.getRental().getMember().getId(),
                 sd.getRental().getMember().getName(),
+                sd.getRental().getMember().getAddress(),
                 sd.getRentalItem().getRentalStart(),
                 sd.getRentalItem().getRentalEnd()
         )).toList();
@@ -80,6 +81,7 @@ public class ServiceDateService {
                 sd.getRentalItem().getProduct().getName(),
                 sd.getRental().getMember().getId(),
                 sd.getRental().getMember().getName(),
+                sd.getRental().getMember().getAddress(),
                 sd.getRentalItem().getRentalStart(),
                 sd.getRentalItem().getRentalEnd()
         )).toList();
